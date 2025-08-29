@@ -1,12 +1,15 @@
 apply plugin: 'maven-publish'
 
-ext.licenseFile = files("$rootDir/LICENSE.txt")
-
-def pubVersion = '0.0.1'
-
 def outputsFolder = file("$buildDir/outputs")
 
 def versionFile = file("$outputsFolder/version.txt")
+
+def pubVersion = "1.0.2"
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
 
 task outputVersions() {
     description = 'Prints the versions of wpilib to a file for use by the downstream packaging project'
@@ -42,85 +45,37 @@ ext.addTaskToCopyAllOutputs = { task ->
     copyAllOutputs.from task.archiveFile
 }
 
-def artifactGroupId = 'com.vendor.frc'
-def baseArtifactId = 'Vendor'
-def driverZipBaseName = "_GROUP_com_vendor_frc_ID_${baseArtifactId}-driver_CLS"
-def zipBaseName = "_GROUP_com_vendor_frc_ID_${baseArtifactId}-cpp_CLS"
-def javaBaseName = "_GROUP_com_vendor_frc_ID_${baseArtifactId}-java_CLS"
+def javaBaseName = "_GROUP_org_turbojax_turbologger_ID_TurboLogger-java_CLS"
 
-task cppHeadersZip(type: Zip) {
-    destinationDirectory = outputsFolder
-    archiveBaseName = zipBaseName
-    archiveClassifier = "headers"
-
-    from(licenseFile) {
-        into '/'
-    }
-
-    from('src/main/native/include') {
-        into '/'
-    }
-}
-
-task cppSourceZip(type: Zip) {
-    destinationDirectory = outputsFolder
-    archiveBaseName = zipBaseName
-    archiveClassifier = "sources"
-
-    from(licenseFile) {
-        into '/'
-    }
-
-    from('src/main/native/cpp') {
-        into '/'
-    }
-}
-
-task cppDriverHeadersZip(type: Zip) {
-    destinationDirectory = outputsFolder
-    archiveBaseName = driverZipBaseName
-    archiveClassifier = "headers"
-
-    from(licenseFile) {
-        into '/'
-    }
-
-    from('src/main/driver/include') {
-        into '/'
-    }
-}
-
-build.dependsOn cppHeadersZip
-addTaskToCopyAllOutputs(cppHeadersZip)
-build.dependsOn cppSourceZip
-addTaskToCopyAllOutputs(cppSourceZip)
-build.dependsOn cppDriverHeadersZip
-addTaskToCopyAllOutputs(cppDriverHeadersZip)
-
-task sourcesJar(type: Jar, dependsOn: classes) {
+tasks.register('sourcesJar', Jar) {
+    dependsOn classes
     archiveClassifier = 'sources'
     from sourceSets.main.allSource
 }
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
+tasks.register('javadocJar', Jar) {
+    dependsOn javadoc
     archiveClassifier = 'javadoc'
     from javadoc.destinationDir
 }
 
-task outputJar(type: Jar, dependsOn: classes) {
+tasks.register('outputJar', Jar) {
+    dependsOn classes
     archiveBaseName = javaBaseName
     destinationDirectory = outputsFolder
     from sourceSets.main.output
 }
 
-task outputSourcesJar(type: Jar, dependsOn: classes) {
+tasks.register('outputSourcesJar', Jar) {
+    dependsOn classes
     archiveBaseName = javaBaseName
     destinationDirectory = outputsFolder
     archiveClassifier = 'sources'
     from sourceSets.main.allSource
 }
 
-task outputJavadocJar(type: Jar, dependsOn: javadoc) {
+tasks.register('outputJavadocJar', Jar) {
+    dependsOn javadoc
     archiveBaseName = javaBaseName
     destinationDirectory = outputsFolder
     archiveClassifier = 'javadoc'
@@ -150,55 +105,39 @@ def releasesRepoUrl = "$buildDir/repos/releases"
 publishing {
     repositories {
         maven {
-
             url = releasesRepoUrl
         }
     }
 }
 
-task cleanReleaseRepo(type: Delete) {
+tasks.register('cleanReleaseRepo', Delete) {
     delete releasesRepoUrl
 }
 
 tasks.matching {it != cleanReleaseRepo}.all {it.dependsOn cleanReleaseRepo}
 
-model {
-    publishing {
-        def taskList = createComponentZipTasks($.components, ['Vendor'], zipBaseName, Zip, project, includeStandardZipFormat)
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'org.turbojax'
+            artifactId = 'TurboLogger'
+            version = pubVersion
 
-        def driverTaskList = createComponentZipTasks($.components, ['VendorDriver'], driverZipBaseName, Zip, project, includeStandardZipFormat)
+            from components.java
+        }
+    }
 
-        publications {
-            cpp(MavenPublication) {
-                taskList.each {
-                    artifact it
-                }
-                artifact cppHeadersZip
-                artifact cppSourceZip
+    repositories {
+        maven {
+            name = "turbojax-releases"
+            url = uri("https://maven.turbojax.org/releases")
 
-                artifactId = "${baseArtifactId}-cpp"
-                groupId artifactGroupId
-                version pubVersion
+            credentials {
+                username = "turbo"
+                password = "EvNq/ACJijFcrnyf4jhQU4CUCZaP8g1x08jUQfDYAftllF9166F06qrnJTkVP5Sx"
             }
-            driver(MavenPublication) {
-                driverTaskList.each {
-                    artifact it
-                }
-                artifact cppDriverHeadersZip
-
-                artifactId = "${baseArtifactId}-driver"
-                groupId artifactGroupId
-                version pubVersion
-            }
-
-            java(MavenPublication) {
-                artifact jar
-                artifact sourcesJar
-                artifact javadocJar
-
-                artifactId = "${baseArtifactId}-java"
-                groupId artifactGroupId
-                version pubVersion
+            authentication {
+                basic(BasicAuthentication)
             }
         }
     }
