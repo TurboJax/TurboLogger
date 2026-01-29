@@ -134,7 +134,25 @@ def releasesRepoUrl = "$buildDir/repos/releases"
 publishing {
     repositories {
         maven {
-            url = releasesRepoUrl
+            name = "turbojax-releases"
+            url = uri("https://maven.turbojax.org/releases")
+
+            credentials {
+                username = "turbo"
+                password = "EvNq/ACJijFcrnyf4jhQU4CUCZaP8g1x08jUQfDYAftllF9166F06qrnJTkVP5Sx"
+            }
+            authentication {
+                basic(BasicAuthentication)
+            }
+        }
+    }
+    publications {
+        maven(MavenPublication) {
+            groupId = 'org.turbojax'
+            artifactId = 'TurboLogger'
+            version = pubVersion
+
+            from components.java
         }
     }
 }
@@ -153,15 +171,7 @@ model {
                 artifact sourcesJar
                 artifact javadocJar
 
-                artifactId = "${baseArtifactId}-java"
-                groupId = artifactGroupId
-                version = pubVersion
-            }
-
-            vendordep(MavenPublication) {
-                artifact vendordepJsonZip
-
-                artifactId = "${baseArtifactId}-vendordep"
+                artifactId = "${baseArtifactId}"
                 groupId = artifactGroupId
                 version = pubVersion
             }
