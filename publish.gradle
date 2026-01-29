@@ -1,15 +1,17 @@
+import org.apache.tools.ant.filters.FixCrLfFilter
+import org.apache.tools.ant.filters.ReplaceTokens
+
 apply plugin: 'maven-publish'
+
+ext.licenseFile = files("$rootDir/LICENSE.txt")
+
+def templateVendorFile = "TurboLogger.json"
+
+def pubVersion = '1.0.2'
 
 def outputsFolder = file("$buildDir/outputs")
 
 def versionFile = file("$outputsFolder/version.txt")
-
-def pubVersion = "1.0.2"
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-}
 
 task outputVersions() {
     description = 'Prints the versions of wpilib to a file for use by the downstream packaging project'
@@ -31,7 +33,7 @@ task libraryBuild() {}
 build.dependsOn outputVersions
 
 task copyAllOutputs(type: Copy) {
-    destinationDir file("$buildDir/allOutputs")
+    destinationDir = file("$buildDir/allOutputs")
     from versionFile
     dependsOn outputVersions
 }
@@ -45,58 +47,85 @@ ext.addTaskToCopyAllOutputs = { task ->
     copyAllOutputs.from task.archiveFile
 }
 
+def artifactGroupId = 'org.turbojax'
+def baseArtifactId = 'TurboLogger'
 def javaBaseName = "_GROUP_org_turbojax_turbologger_ID_TurboLogger-java_CLS"
 
-tasks.register('sourcesJar', Jar) {
-    dependsOn classes
+task sourcesJar(type: Jar, dependsOn: classes) {
     archiveClassifier = 'sources'
     from sourceSets.main.allSource
 }
 
-tasks.register('javadocJar', Jar) {
-    dependsOn javadoc
+task javadocJar(type: Jar, dependsOn: javadoc) {
     archiveClassifier = 'javadoc'
     from javadoc.destinationDir
 }
 
-tasks.register('outputJar', Jar) {
-    dependsOn classes
+task outputJar(type: Jar, dependsOn: classes) {
     archiveBaseName = javaBaseName
     destinationDirectory = outputsFolder
     from sourceSets.main.output
 }
 
-tasks.register('outputSourcesJar', Jar) {
-    dependsOn classes
+task outputSourcesJar(type: Jar, dependsOn: classes) {
     archiveBaseName = javaBaseName
     destinationDirectory = outputsFolder
     archiveClassifier = 'sources'
     from sourceSets.main.allSource
 }
 
-tasks.register('outputJavadocJar', Jar) {
-    dependsOn javadoc
+task outputJavadocJar(type: Jar, dependsOn: javadoc) {
     archiveBaseName = javaBaseName
     destinationDirectory = outputsFolder
     archiveClassifier = 'javadoc'
     from javadoc.destinationDir
 }
 
+// Apply template variables from the vendordep file.
+// Replaces ${VARIABLE} with VARIABLE: value in expand()
+task vendordepJson() {
+    description = 'Builds the vendordep json file.'
+    group = 'Build'
+    outputs.file("$buildDir/repos/$templateVendorFile")
+
+    copy {
+        from templateVendorFile
+        into "$buildDir/repos/"
+        expand(version: pubVersion,
+                groupId: artifactGroupId,
+                artifactId: baseArtifactId)
+    }
+}
+
+task vendordepJsonZip(type: Zip) {
+    destinationDirectory = outputsFolder
+    archiveBaseName = "vendordepJson"
+
+    from("$buildDir/repos/$templateVendorFile") {
+        into '/'
+    }
+    dependsOn vendordepJson
+}
+
 artifacts {
-    archives sourcesJar
-    archives javadocJar
-    archives outputJar
-    archives outputSourcesJar
-    archives outputJavadocJar
+    tasks.named("assemble") {
+        dependsOn(sourcesJar)
+        dependsOn(javadocJar)
+        dependsOn(outputJar)
+        dependsOn(outputSourcesJar)
+        dependsOn(outputJavadocJar)
+    }
 }
 
 addTaskToCopyAllOutputs(outputSourcesJar)
 addTaskToCopyAllOutputs(outputJavadocJar)
 addTaskToCopyAllOutputs(outputJar)
+addTaskToCopyAllOutputs(vendordepJsonZip)
 
 build.dependsOn outputSourcesJar
 build.dependsOn outputJavadocJar
 build.dependsOn outputJar
+build.dependsOn vendordepJsonZip
 
 libraryBuild.dependsOn build
 
@@ -110,34 +139,31 @@ publishing {
     }
 }
 
-tasks.register('cleanReleaseRepo', Delete) {
+task cleanReleaseRepo(type: Delete) {
     delete releasesRepoUrl
 }
 
 tasks.matching {it != cleanReleaseRepo}.all {it.dependsOn cleanReleaseRepo}
 
-publishing {
-    publications {
-        maven(MavenPublication) {
-            groupId = 'org.turbojax'
-            artifactId = 'TurboLogger'
-            version = pubVersion
+model {
+    publishing {
+        publications {
+            java(MavenPublication) {
+                artifact jar
+                artifact sourcesJar
+                artifact javadocJar
 
-            from components.java
-        }
-    }
-
-    repositories {
-        maven {
-            name = "turbojax-releases"
-            url = uri("https://maven.turbojax.org/releases")
-
-            credentials {
-                username = "turbo"
-                password = "EvNq/ACJijFcrnyf4jhQU4CUCZaP8g1x08jUQfDYAftllF9166F06qrnJTkVP5Sx"
+                artifactId = "${baseArtifactId}-java"
+                groupId = artifactGroupId
+                version = pubVersion
             }
-            authentication {
-                basic(BasicAuthentication)
+
+            vendordep(MavenPublication) {
+                artifact vendordepJsonZip
+
+                artifactId = "${baseArtifactId}-vendordep"
+                groupId = artifactGroupId
+                version = pubVersion
             }
         }
     }
