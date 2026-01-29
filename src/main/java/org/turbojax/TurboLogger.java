@@ -116,7 +116,7 @@ public class TurboLogger {
      * @param aliases Any aliases to add to the ntPath.
      */
     public static void log(String key, boolean[] value, String... aliases) {
-        // Saing any aliases for the key
+        // Saving any aliases for the key
         if (aliases.length > 0) addAliases(key, aliases);
 
         // Adding the value to the lastReads map if it isn't there yet.
