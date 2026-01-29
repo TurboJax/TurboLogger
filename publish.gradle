@@ -7,7 +7,7 @@ ext.licenseFile = files("$rootDir/LICENSE.txt")
 
 def templateVendorFile = "TurboLogger.json"
 
-def pubVersion = '1.0.2'
+def pubVersion = '1.1.0'
 
 def outputsFolder = file("$buildDir/outputs")
 
@@ -49,7 +49,7 @@ ext.addTaskToCopyAllOutputs = { task ->
 
 def artifactGroupId = 'org.turbojax'
 def baseArtifactId = 'TurboLogger'
-def javaBaseName = "_GROUP_org_turbojax_turbologger_ID_TurboLogger-java_CLS"
+def javaBaseName = "_GROUP_org_turbojax_turbologger_ID_TurboLogger_CLS"
 
 task sourcesJar(type: Jar, dependsOn: classes) {
     archiveClassifier = 'sources'

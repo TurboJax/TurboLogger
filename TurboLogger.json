@@ -7,12 +7,12 @@
     "mavenUrls": [
         "https://maven.turbojax.org/releases"
     ],
-    "jsonUrl": "https://turbojax.org/turbologger/TurboLogger.json",
+    "jsonUrl": "https://turbojax.org/files/TurboLogger.json",
     "javaDependencies": [
         {
             "groupId": "org.turbojax",
             "artifactId": "TurboLogger",
-            "version": "1.0.2"
+            "version": "1.1.0"
         }
     ],
     "jniDependencies": [],
