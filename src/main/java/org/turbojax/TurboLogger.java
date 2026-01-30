@@ -1,5 +1,7 @@
 package org.turbojax;
 
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.struct.Rotation2dStruct;
 import edu.wpi.first.networktables.*;
 import edu.wpi.first.util.struct.Struct;
 import edu.wpi.first.util.struct.StructSerializable;
@@ -11,8 +13,6 @@ import java.util.List;
 
 public class TurboLogger {
     // Hashmaps for NT logging
-    private static final HashMap<String, Publisher> pubs = new HashMap<>();
-    private static final HashMap<String, Subscriber> subs = new HashMap<>();
     private static final HashMap<String, Long> lastReads = new HashMap<>();
     private static final HashMap<String, List<String>> ntPathToAliases = new HashMap<>();
     private static final HashMap<String, String> aliasToNTPath = new HashMap<>();
@@ -72,19 +72,6 @@ public class TurboLogger {
         }
     }
 
-    /**
-     * Reports when a key does not have a subscriber to read from.
-     *
-     * @param key The key being read.
-     */
-    private static void noSub(String key) {
-        if (aliasToNTPath.containsKey(key)) {
-            DriverStation.reportWarning("Subscriber does not exist for alias \"" + key + "\" of key \"" + aliasToNTPath.get(key) + "\".", false);
-        } else {
-            DriverStation.reportWarning("Subscriber does not exist for key \"" + key + "\".", false);
-        }
-    }
-
     // TODO: Should I use this method or stick with the other method above?
     /**
      * Reports when the internal type of logged or read {@link StructSerializable} objects do not match what type is being requested.
@@ -116,43 +103,34 @@ public class TurboLogger {
      * @param aliases Any aliases to add to the ntPath.
      */
     public static void log(String key, boolean[] value, String... aliases) {
-        // Saving any aliases for the key
-        if (aliases.length > 0) addAliases(key, aliases);
+        String ntPath = key;  
 
-        // Adding the value to the lastReads map if it isn't there yet.
-        if (!lastReads.containsKey(key)) lastReads.put(key, 0L);
+        // Checking if the key is an alias
+        if (aliasToNTPath.containsKey(key)) {
 
-        // Checking if the key has been published already.
-        if (pubs.containsKey(key)) {
-            // If the published value is a boolean array, then it pushes the value.
-            if (pubs.get(key) instanceof BooleanArrayPublisher pub) {
-                pub.set(value);
-                return;
-            }
+        }
 
-            // Reporting if the publisher type doesn't match up.
-            pubsubTypeMismatch(key, "BooleanArray", true);
+        // Getting the BooleanArrayTopic
+        BooleanArrayTopic topic = table.getBooleanArrayTopic(key);
 
+        // Making sure the topic points to a boolean array.
+        // This will be false if the key has already been used under a different name.
+        if (topic.getType() != NetworkTableType.kBooleanArray) {
+            pubsubTypeMismatch(key, "BooleanArray", false);
             return;
         }
 
-        // Since the publisher for this key hasn't been created, it makes one.
-        // If the key has any aliases defined, it also pushes the pubs and subs to them.
+        // Pushing the value
+        topic.publish().set(value);
 
-        // Creating the boolean array topic
-        BooleanArrayTopic topic = table.getBooleanArrayTopic(key);
+        // Saving any aliases for the key
+        if (aliases.length > 0) addAliases(key, aliases);
 
-        BooleanArrayPublisher pub = topic.publish();
-        BooleanArraySubscriber sub = topic.subscribe(value);
+        // Resetting the lastRead entry for the key
+        lastReads.put(key, 0L);
 
-        // Saving the pub and sub
-        pubs.put(key, pub);
-        subs.put(key, sub);
-
-        // Updating the pub, sub, and lastread entries for all the aliases of this key.
+        // Updating the lastRead entry for all the aliases of this key.
         for (String alias : ntPathToAliases.getOrDefault(key, new ArrayList<>())) {
-            pubs.put(alias, pub);
-            subs.put(alias, sub);
             lastReads.put(alias, 0L);
         }
     }
@@ -167,42 +145,27 @@ public class TurboLogger {
      * @param aliases Any aliases to add to the ntPath.
      */
     public static void log(String key, boolean value, String... aliases) {
-        // Saving any aliases for the key.
-        if (aliases.length > 0) addAliases(key, aliases);
+        // Getting the BooleanTopic
+        BooleanTopic topic = table.getBooleanTopic(key);
 
-        // Adding the value to the lastReads map if it isn't there yet.
-        if (!lastReads.containsKey(key)) lastReads.put(key, 0L);
-
-        // Checking if the key has been published to NT already.
-        if (pubs.containsKey(key)) {
-            // If the published value is a boolean, then it pushes the value and exits.
-            if (pubs.get(key) instanceof BooleanPublisher pub) {
-                pub.set(value);
-                return;
-            }
-
-            // Reporting if the publisher type doesn't match up.
-            // If the key is an alias, then change the message reported to DriverStation.
-            pubsubTypeMismatch(key, "Boolean", true);
-
+        // Making sure the topic points to a boolean.
+        // This will be false if the key has already been used under a different name.
+        if (topic.getType() != NetworkTableType.kBoolean) {
+            pubsubTypeMismatch(key, "Boolean", false);
             return;
         }
 
-        // Since the publisher for this key hasn't been created, it makes one.
-        // If the key has any aliases defined, it also pushes the pubs and subs to them.
-        // Creating the boolean topic
-        BooleanTopic topic = table.getBooleanTopic(key);
+        // Pushing the value
+        topic.publish().set(value);
 
-        BooleanPublisher pub = topic.publish();
-        BooleanSubscriber sub = topic.subscribe(value);
+        // Saving any aliases for the key
+        if (aliases.length > 0) addAliases(key, aliases);
 
-        pubs.put(key, pub);
-        subs.put(key, sub);
+        // Resetting the lastRead entry for the key
+        lastReads.put(key, 0L);
 
-        // This updates the pub/sub/lastread entries for all the aliases of this path.
+        // Updating the lastRead entry for all the aliases of this key.
         for (String alias : ntPathToAliases.getOrDefault(key, new ArrayList<>())) {
-            pubs.put(alias, pub);
-            subs.put(alias, sub);
             lastReads.put(alias, 0L);
         }
     }
@@ -217,42 +180,27 @@ public class TurboLogger {
      * @param aliases Any aliases to add to the ntPath.
      */
     public static void log(String key, double[] value, String... aliases) {
-        // Adding any aliases for the NT path.
-        if (aliases.length > 0) addAliases(key, aliases);
+        // Getting the DoubleArrayTopic
+        DoubleArrayTopic topic = table.getDoubleArrayTopic(key);
 
-        // Adding the value to the lastReads map if it isn't there yet.
-        if (!lastReads.containsKey(key)) lastReads.put(key, 0L);
-
-        // Checking if the key has been published already.
-        if (pubs.containsKey(key)) {
-            // If the published value is a double array, then it pushes the value and exits.
-            if (pubs.get(key) instanceof DoubleArrayPublisher pub) {
-                pub.set(value);
-                return;
-            }
-
-            // Reporting if the publisher type doesn't match up.
-            // If the key is an alias, then change the message reported to DriverStation.
-            pubsubTypeMismatch(key, "DoubleArray", true);
-
+        // Making sure the topic points to a double array.
+        // This will be false if the key has already been used under a different name.
+        if (topic.getType() != NetworkTableType.kDoubleArray) {
+            pubsubTypeMismatch(key, "DoubleArray", false);
             return;
         }
 
-        // Since the publisher for this key hasn't been created, it makes one.
-        // If the key has any aliases defined, it also pushes the pubs and subs to them.
-        // Creating the double array topic
-        DoubleArrayTopic topic = table.getDoubleArrayTopic(key);
+        // Pushing the value
+        topic.publish().set(value);
 
-        DoubleArrayPublisher pub = topic.publish();
-        DoubleArraySubscriber sub = topic.subscribe(value);
+        // Saving any aliases for the key
+        if (aliases.length > 0) addAliases(key, aliases);
 
-        pubs.put(key, pub);
-        subs.put(key, sub);
+        // Resetting the lastRead entry for the key
+        lastReads.put(key, 0L);
 
-        // This updates the pub/sub/lastread entries for all the aliases of this path.
+        // Updating the lastRead entry for all the aliases of this key.
         for (String alias : ntPathToAliases.getOrDefault(key, new ArrayList<>())) {
-            pubs.put(alias, pub);
-            subs.put(alias, sub);
             lastReads.put(alias, 0L);
         }
     }
@@ -267,42 +215,27 @@ public class TurboLogger {
      * @param aliases Any aliases to add to the ntPath.
      */
     public static void log(String key, double value, String... aliases) {
-        // Adding any aliases for the NT path.
-        if (aliases.length > 0) addAliases(key, aliases);
+        // Getting the DoubleTopic
+        DoubleTopic topic = table.getDoubleTopic(key);
 
-        // Adding the value to the lastReads map if it isn't there yet.
-        if (!lastReads.containsKey(key)) lastReads.put(key, 0L);
-
-        // Checking if the key has been published already.
-        if (pubs.containsKey(key)) {
-            // If the published value is a double, then it pushes the value and exits.
-            if (pubs.get(key) instanceof DoublePublisher pub) {
-                pub.set(value);
-                return;
-            }
-
-            // Reporting if the publisher type doesn't match up.
-            // If the key is an alias, then change the message reported to DriverStation.
-            pubsubTypeMismatch(key, "Double", true);
-
+        // Making sure the topic points to a double.
+        // This will be false if the key has already been used under a different name.
+        if (topic.getType() != NetworkTableType.kDouble) {
+            pubsubTypeMismatch(key, "Double", false);
             return;
         }
 
-        // Since the publisher for this key hasn't been created, it makes one.
-        // If the key has any aliases defined, it also pushes the pubs and subs to them.
-        // Creating the double topic
-        DoubleTopic topic = table.getDoubleTopic(key);
+        // Pushing the value
+        topic.publish().set(value);
 
-        DoublePublisher pub = topic.publish();
-        DoubleSubscriber sub = topic.subscribe(value);
+        // Saving any aliases for the key
+        if (aliases.length > 0) addAliases(key, aliases);
 
-        pubs.put(key, pub);
-        subs.put(key, sub);
+        // Resetting the lastRead entry for the key
+        lastReads.put(key, 0L);
 
-        // This updates the pub/sub/lastread entries for all the aliases of this path.
+        // Updating the lastRead entry for all the aliases of this key.
         for (String alias : ntPathToAliases.getOrDefault(key, new ArrayList<>())) {
-            pubs.put(alias, pub);
-            subs.put(alias, sub);
             lastReads.put(alias, 0L);
         }
     }
@@ -317,42 +250,27 @@ public class TurboLogger {
      * @param aliases Any aliases to add to the ntPath.
      */
     public static void log(String key, float[] value, String... aliases) {
-        // Adding any aliases for the NT path.
-        if (aliases.length > 0) addAliases(key, aliases);
+        // Getting the FloatArrayTopic
+        FloatArrayTopic topic = table.getFloatArrayTopic(key);
 
-        // Adding the value to the lastReads map if it isn't there yet.
-        if (!lastReads.containsKey(key)) lastReads.put(key, 0L);
-
-        // Checking if the key has been published already.
-        if (pubs.containsKey(key)) {
-            // If the published value is a float array, then it pushes the value and exits.
-            if (pubs.get(key) instanceof FloatArrayPublisher pub) {
-                pub.set(value);
-                return;
-            }
-
-            // Reporting if the publisher type doesn't match up.
-            // If the key is an alias, then change the message reported to DriverStation.
-            pubsubTypeMismatch(key, "FloatArray", true);
-
+        // Making sure the topic points to a float array.
+        // This will be false if the key has already been used under a different name.
+        if (topic.getType() != NetworkTableType.kFloatArray) {
+            pubsubTypeMismatch(key, "FloatArray", false);
             return;
         }
 
-        // Since the publisher for this key hasn't been created, it makes one.
-        // If the key has any aliases defined, it also pushes the pubs and subs to them.
-        // Creating the float array topic
-        FloatArrayTopic topic = table.getFloatArrayTopic(key);
+        // Pushing the value
+        topic.publish().set(value);
 
-        FloatArrayPublisher pub = topic.publish();
-        FloatArraySubscriber sub = topic.subscribe(value);
+        // Saving any aliases for the key
+        if (aliases.length > 0) addAliases(key, aliases);
 
-        pubs.put(key, pub);
-        subs.put(key, sub);
+        // Resetting the lastRead entry for the key
+        lastReads.put(key, 0L);
 
-        // This updates the pub/sub/lastread entries for all the aliases of this path.
+        // Updating the lastRead entry for all the aliases of this key.
         for (String alias : ntPathToAliases.getOrDefault(key, new ArrayList<>())) {
-            pubs.put(alias, pub);
-            subs.put(alias, sub);
             lastReads.put(alias, 0L);
         }
     }
@@ -367,42 +285,27 @@ public class TurboLogger {
      * @param aliases Any aliases to add to the ntPath.
      */
     public static void log(String key, float value, String... aliases) {
-        // Adding any aliases for the NT path.
-        if (aliases.length > 0) addAliases(key, aliases);
+        // Getting the FloatTopic
+        FloatTopic topic = table.getFloatTopic(key);
 
-        // Adding the value to the lastReads map if it isn't there yet.
-        if (!lastReads.containsKey(key)) lastReads.put(key, 0L);
-
-        // Checking if the key has been published already.
-        if (pubs.containsKey(key)) {
-            // If the published value is a float, then it pushes the value and exits.
-            if (pubs.get(key) instanceof FloatPublisher pub) {
-                pub.set(value);
-                return;
-            }
-
-            // Reporting if the publisher type doesn't match up.
-            // If the key is an alias, then change the message reported to DriverStation.
-            pubsubTypeMismatch(key, "Float", true);
-
+        // Making sure the topic points to a float.
+        // This will be false if the key has already been used under a different name.
+        if (topic.getType() != NetworkTableType.kFloat) {
+            pubsubTypeMismatch(key, "Float", false);
             return;
         }
 
-        // Since the publisher for this key hasn't been created, it makes one.
-        // If the key has any aliases defined, it also pushes the pubs and subs to them.
-        // Creating the float topic
-        FloatTopic topic = table.getFloatTopic(key);
+        // Pushing the value
+        topic.publish().set(value);
 
-        FloatPublisher pub = topic.publish();
-        FloatSubscriber sub = topic.subscribe(value);
+        // Saving any aliases for the key
+        if (aliases.length > 0) addAliases(key, aliases);
 
-        pubs.put(key, pub);
-        subs.put(key, sub);
+        // Resetting the lastRead entry for the key
+        lastReads.put(key, 0L);
 
-        // This updates the pub/sub/lastread entries for all the aliases of this path.
+        // Updating the lastRead entry for all the aliases of this key.
         for (String alias : ntPathToAliases.getOrDefault(key, new ArrayList<>())) {
-            pubs.put(alias, pub);
-            subs.put(alias, sub);
             lastReads.put(alias, 0L);
         }
     }
@@ -417,48 +320,33 @@ public class TurboLogger {
      * @param aliases Any aliases to add to the ntPath.
      */
     public static void log(String key, int[] value, String... aliases) {
-        // Converting the int array to a long array.
-        long[] longArr = new long[value.length];
-        for (int i = 0; i < value.length; i++) {
-            longArr[i] = value[i];
-        }
+        // Getting the IntegerArrayTopic
+        IntegerArrayTopic topic = table.getIntegerArrayTopic(key);
 
-        // Adding any aliases for the NT path.
-        if (aliases.length > 0) addAliases(key, aliases);
-
-        // Adding the value to the lastReads map if it isn't there yet.
-        if (!lastReads.containsKey(key)) lastReads.put(key, 0L);
-
-        // Checking if the key has been published already.
-        if (pubs.containsKey(key)) {
-            // If the published value is an int array, then it pushes the value and exits.
-            if (pubs.get(key) instanceof IntegerArrayPublisher pub) {
-                pub.set(longArr);
-                return;
-            }
-
-            // Reporting if the publisher type doesn't match up.
-            // If the key is an alias, then change the message reported to DriverStation.
-            pubsubTypeMismatch(key, "IntegerArray", true);
-
+        // Making sure the topic points to an integer array.
+        // This will be false if the key has already been used under a different name.
+        if (topic.getType() != NetworkTableType.kIntegerArray) {
+            pubsubTypeMismatch(key, "IntegerArray", false);
             return;
         }
 
-        // Since the publisher for this key hasn't been created, it makes one.
-        // If the key has any aliases defined, it also pushes the pubs and subs to them.
-        // Creating the int array topic
-        IntegerArrayTopic topic = table.getIntegerArrayTopic(key);
+        // Converting the int array to a long array
+        long[] new_value = new long[value.length];
+        for (int i = 0; i < value.length; i++) {
+            new_value[i] = value[i];
+        }
 
-        IntegerArrayPublisher pub = topic.publish();
-        IntegerArraySubscriber sub = topic.subscribe(longArr);
+        // Pushing the value
+        topic.publish().set(new_value);
 
-        pubs.put(key, pub);
-        subs.put(key, sub);
+        // Saving any aliases for the key
+        if (aliases.length > 0) addAliases(key, aliases);
 
-        // This updates the pub/sub/lastread entries for all the aliases of this path.
+        // Resetting the lastRead entry for the key
+        lastReads.put(key, 0L);
+
+        // Updating the lastRead entry for all the aliases of this key.
         for (String alias : ntPathToAliases.getOrDefault(key, new ArrayList<>())) {
-            pubs.put(alias, pub);
-            subs.put(alias, sub);
             lastReads.put(alias, 0L);
         }
     }
@@ -473,42 +361,27 @@ public class TurboLogger {
      * @param aliases Any aliases to add to the ntPath.
      */
     public static void log(String key, int value, String... aliases) {
-        // Adding any aliases for the NT path.
-        if (aliases.length > 0) addAliases(key, aliases);
+        // Getting the IntegerTopic
+        IntegerTopic topic = table.getIntegerTopic(key);
 
-        // Adding the value to the lastReads map if it isn't there yet.
-        if (!lastReads.containsKey(key)) lastReads.put(key, 0L);
-
-        // Checking if the key has been published already.
-        if (pubs.containsKey(key)) {
-            // If the published value is an int, then it pushes the value and exits.
-            if (pubs.get(key) instanceof IntegerPublisher pub) {
-                pub.set(value);
-                return;
-            }
-
-            // Reporting if the publisher type doesn't match up.
-            // If the key is an alias, then change the message reported to DriverStation.
-            pubsubTypeMismatch(key, "Integer", true);
-
+        // Making sure the topic points to an integer.
+        // This will be false if the key has already been used under a different name.
+        if (topic.getType() != NetworkTableType.kInteger) {
+            pubsubTypeMismatch(key, "Integer", false);
             return;
         }
 
-        // Since the publisher for this key hasn't been created, it makes one.
-        // If the key has any aliases defined, it also pushes the pubs and subs to them.
-        // Creating the int topic
-        IntegerTopic topic = table.getIntegerTopic(key);
+        // Pushing the value
+        topic.publish().set(value);
 
-        IntegerPublisher pub = topic.publish();
-        IntegerSubscriber sub = topic.subscribe(value);
+        // Saving any aliases for the key
+        if (aliases.length > 0) addAliases(key, aliases);
 
-        pubs.put(key, pub);
-        subs.put(key, sub);
+        // Resetting the lastRead entry for the key
+        lastReads.put(key, 0L);
 
-        // This updates the pub/sub/lastread entries for all the aliases of this path.
+        // Updating the lastRead entry for all the aliases of this key.
         for (String alias : ntPathToAliases.getOrDefault(key, new ArrayList<>())) {
-            pubs.put(alias, pub);
-            subs.put(alias, sub);
             lastReads.put(alias, 0L);
         }
     }
@@ -523,42 +396,27 @@ public class TurboLogger {
      * @param aliases Any aliases to add to the ntPath.
      */
     public static void log(String key, String[] value, String... aliases) {
-        // Adding any aliases for the NT path.
-        if (aliases.length > 0) addAliases(key, aliases);
+        // Getting the StringArrayTopic
+        StringArrayTopic topic = table.getStringArrayTopic(key);
 
-        // Adding the value to the lastReads map if it isn't there yet
-        if (!lastReads.containsKey(key)) lastReads.put(key, 0L);
-
-        // Checking if the key has been published already.
-        if (pubs.containsKey(key)) {
-            // If the published value is a string array, then it pushes the value and exits.
-            if (pubs.get(key) instanceof StringArrayPublisher pub) {
-                pub.set(value);
-                return;
-            }
-
-            // Reporting if the publisher type doesn't match up.
-            // If the key is an alias, then change the message reported to DriverStation.
-            pubsubTypeMismatch(key, "StringArray", true);
-
+        // Making sure the topic points to a string array.
+        // This will be false if the key has already been used under a different name.
+        if (topic.getType() != NetworkTableType.kStringArray) {
+            pubsubTypeMismatch(key, "StringArray", false);
             return;
         }
 
-        // Since the publisher for this key hasn't been created, it makes one.
-        // If the key has any aliases defined, it also pushes the pubs and subs to them.
-        // Creating the string array topic
-        StringArrayTopic topic = table.getStringArrayTopic(key);
+        // Pushing the value
+        topic.publish().set(value);
 
-        StringArrayPublisher pub = topic.publish();
-        StringArraySubscriber sub = topic.subscribe(value);
+        // Saving any aliases for the key
+        if (aliases.length > 0) addAliases(key, aliases);
 
-        pubs.put(key, pub);
-        subs.put(key, sub);
+        // Resetting the lastRead entry for the key
+        lastReads.put(key, 0L);
 
-        // This updates the pub/sub/lastread entries for all the aliases of this path.
+        // Updating the lastRead entry for all the aliases of this key.
         for (String alias : ntPathToAliases.getOrDefault(key, new ArrayList<>())) {
-            pubs.put(alias, pub);
-            subs.put(alias, sub);
             lastReads.put(alias, 0L);
         }
     }
@@ -573,42 +431,27 @@ public class TurboLogger {
      * @param aliases Any aliases to add to the ntPath.
      */
     public static void log(String key, String value, String... aliases) {
-        // Adding any aliases for the NT path.
-        if (aliases.length > 0) addAliases(key, aliases);
+        // Getting the StringTopic
+        StringTopic topic = table.getStringTopic(key);
 
-        // Adding the value to the lastReads map if it isn't there yet.
-        if (!lastReads.containsKey(key)) lastReads.put(key, 0L);
-
-        // Checking if the key has been published already.
-        if (pubs.containsKey(key)) {
-            // If the published value is a string, then it pushes the value.
-            if (pubs.get(key) instanceof StringPublisher pub) {
-                pub.set(value);
-                return;
-            }
-
-            // Reporting if the publisher type doesn't match up.
-            // If the key is an alias, then change the message reported to DriverStation.
-            pubsubTypeMismatch(key, "String", true);
-
+        // Making sure the topic points to a string.
+        // This will be false if the key has already been used under a different name.
+        if (topic.getType() != NetworkTableType.kString) {
+            pubsubTypeMismatch(key, "String", false);
             return;
         }
 
-        // Since the publisher for this key hasn't been created, it makes one.
-        // If the key has any aliases defined, it also pushes the pubs and subs to them.
-        // Creating the string topic
-        StringTopic topic = table.getStringTopic(key);
+        // Pushing the value
+        topic.publish().set(value);
 
-        StringPublisher pub = topic.publish();
-        StringSubscriber sub = topic.subscribe(value);
+        // Saving any aliases for the key
+        if (aliases.length > 0) addAliases(key, aliases);
 
-        pubs.put(key, pub);
-        subs.put(key, sub);
+        // Resetting the lastRead entry for the key
+        lastReads.put(key, 0L);
 
-        // This updates the pub/sub/lastread entries for all the aliases of this path.
+        // Updating the lastRead entry for all the aliases of this key.
         for (String alias : ntPathToAliases.getOrDefault(key, new ArrayList<>())) {
-            pubs.put(alias, pub);
-            subs.put(alias, sub);
             lastReads.put(alias, 0L);
         }
     }
@@ -625,15 +468,8 @@ public class TurboLogger {
      */
     @SuppressWarnings("unchecked")
     public static <T extends StructSerializable> void log(String key, T[] value, String... aliases) {
-        // Adding any aliases for the NT path.
-        if (aliases.length > 0) addAliases(key, aliases);
-
-        // Adding the value to the lastReads map if it isn't there yet
-        if (!lastReads.containsKey(key)) lastReads.put(key, 0L);
-
         // Finding the struct for this StructSerializable object.
         Struct<T> struct = null;
-
         try {
             struct = (Struct<T>) value.getClass().getComponentType().getDeclaredField("struct").get(value);
         } catch (IllegalAccessException | NoSuchFieldException err) {
@@ -641,45 +477,27 @@ public class TurboLogger {
             return;
         }
 
-        // Checking if the key has been published already.
-        if (pubs.containsKey(key)) {
-            // If the published value is a struct array, then it pushes the value and exits.
-            if (pubs.get(key) instanceof StructArrayPublisher pub && subs.get(key) instanceof StructArraySubscriber sub) {
-                if (sub.get().getClass().getName().equals(value.getClass().getName())) {
-                    ((StructArrayPublisher<T>) pub).set(value);
-                    return;
-                }
+        // Getting the StructArrayTopic
+        StructArrayTopic<T> topic = table.getStructArrayTopic(key, struct);
 
-                // Reports if the struct array being pushed doesn't match the type of the existing
-                // struct array.
-                // If the key is an alias, then change the message reported to DriverStation.
-                structTypeMismatch(key, sub.get().getClass().getName(), sub.get().getClass().getComponentType().getName());
-
-                return;
-            }
-
-            // Reporting if the publisher type doesn't match up.
-            // If the key is an alias, then change the message reported to DriverStation.
-            pubsubTypeMismatch(key, "StructArray", true);
-
+        // Making sure the topic points to the right type of StructSerializable object.
+        // This will be false if the key has already been used under a different name.
+        if (!topic.getTypeString().equals(struct.getTypeString())) {
+            pubsubTypeMismatch(key, "StructArray", false);
             return;
         }
 
-        // Since the publisher for this key hasn't been created, it makes one.
-        // If the key has any aliases defined, it also pushes the pubs and subs to them.
-        // Creating the struct array topic
-        StructArrayTopic<T> topic = table.getStructArrayTopic(key, struct);
+        // Pushing the value
+        topic.publish().set(value);
 
-        StructArrayPublisher<T> pub = topic.publish();
-        StructArraySubscriber<T> sub = topic.subscribe(value);
+        // Saving any aliases for the key
+        if (aliases.length > 0) addAliases(key, aliases);
 
-        pubs.put(key, pub);
-        subs.put(key, sub);
+        // Resetting the lastRead entry for the key
+        lastReads.put(key, 0L);
 
-        // This updates the pub/sub/lastread entries for all the aliases of this path.
+        // Updating the lastRead entry for all the aliases of this key.
         for (String alias : ntPathToAliases.getOrDefault(key, new ArrayList<>())) {
-            pubs.put(alias, pub);
-            subs.put(alias, sub);
             lastReads.put(alias, 0L);
         }
     }
@@ -696,12 +514,6 @@ public class TurboLogger {
      */
     @SuppressWarnings("unchecked")
     public static <T extends StructSerializable> void log(String key, T value, String... aliases) {
-        // Adding any aliases for the NT path.
-        if (aliases.length > 0) addAliases(key, aliases);
-
-        // Adding the value to the lastReads map if it isn't there yet
-        if (!lastReads.containsKey(key)) lastReads.put(key, 0L);
-
         // Finding the struct for this StructSerializable object.
         Struct<T> struct = null;
 
@@ -712,44 +524,27 @@ public class TurboLogger {
             return;
         }
 
-        // Checking if the key has been published already.
-        if (pubs.containsKey(key)) {
-            // If the published value is a struct, then it pushes the value and exits.
-            if (pubs.get(key) instanceof StructPublisher pub && subs.get(key) instanceof StructSubscriber sub) {
-                if (sub.get().getClass().getName().equals(value.getClass().getName())) {
-                    ((StructPublisher<T>) pub).set(value);
-                    return;
-                }
+        // Getting the StructTopic
+        StructTopic<T> topic = table.getStructTopic(key, struct);
 
-                // Reports if the struct being pushed doesn't match the existing struct
-                // If the key is an alias, then change the message reported to DriverStation.
-                structTypeMismatch(key, sub.get().getClass().getName(), sub.get().getClass().getName());
-
-                return;
-            }
-
-            // Reporting if the publisher type doesn't match up.
-            // If the key is an alias, then change the message reported to DriverStation.
-            pubsubTypeMismatch(key, "Struct", true);
-
+        // Making sure the topic points to the right type of StructSerializable object.
+        // This will be false if the key has already been used under a different name.
+        if (!topic.getTypeString().equals(struct.getTypeString())) {
+            pubsubTypeMismatch(key, "Struct", false);
             return;
         }
 
-        // Since the publisher for this key hasn't been created, it makes one.
-        // If the key has any aliases defined, it also pushes the pubs and subs to them.
-        // Creating the struct topic
-        StructTopic<T> topic = table.getStructTopic(key, struct);
+        // Pushing the value
+        topic.publish().set(value);
 
-        StructPublisher<T> pub = topic.publish();
-        StructSubscriber<T> sub = topic.subscribe(value);
+        // Saving any aliases for the key
+        if (aliases.length > 0) addAliases(key, aliases);
 
-        pubs.put(key, pub);
-        subs.put(key, sub);
+        // Resetting the lastRead entry for the key
+        lastReads.put(key, 0L);
 
-        // This updates the pub/sub/lastread entries for all the aliases of this path.
+        // Updating the lastRead entry for all the aliases of this key.
         for (String alias : ntPathToAliases.getOrDefault(key, new ArrayList<>())) {
-            pubs.put(alias, pub);
-            subs.put(alias, sub);
             lastReads.put(alias, 0L);
         }
     }
@@ -765,21 +560,16 @@ public class TurboLogger {
      * @return The boolean array referenced by the key
      */
     public static boolean[] get(String key, boolean[] defaultValue) {
-        // If the subscriber already exists under the same type, return the value.
-        if (subs.get(key) instanceof BooleanArraySubscriber sub) {
-            lastReads.put(key, sub.getLastChange());
+        BooleanArrayTopic topic = table.getBooleanArrayTopic(key);
 
-            return sub.get();
-        }
-
-        // Reporting if the logged data type is different or the publisher doesn't exist.
-        if (pubs.containsKey(key)) {
+        // Making sure the topic points to a boolean array.
+        // This will be false if the key has already been used under a different name.
+        if (topic.getType() != NetworkTableType.kBooleanArray) {
             pubsubTypeMismatch(key, "BooleanArray", false);
-        } else {
-            noSub(key);
+            return defaultValue;
         }
 
-        return defaultValue;
+        return topic.subscribe(defaultValue).get();
     }
 
     /**
@@ -791,21 +581,16 @@ public class TurboLogger {
      * @return The boolean referenced by the key.
      */
     public static boolean get(String key, boolean defaultValue) {
-        // If the subscriber already exists under the same type, return the value.
-        if (subs.get(key) instanceof BooleanSubscriber sub) {
-            lastReads.put(key, sub.getLastChange());
+        BooleanTopic topic = table.getBooleanTopic(key);
 
-            return sub.get();
-        }
-
-        // Reporting if the logged data type is different or the publisher doesn't exist.
-        if (pubs.containsKey(key)) {
+        // Making sure the topic points to a boolean.
+        // This will be false if the key has already been used under a different name.
+        if (topic.getType() != NetworkTableType.kBoolean) {
             pubsubTypeMismatch(key, "Boolean", false);
-        } else {
-            noSub(key);
+            return defaultValue;
         }
 
-        return defaultValue;
+        return topic.subscribe(defaultValue).get();
     }
 
     /**
@@ -817,21 +602,16 @@ public class TurboLogger {
      * @return The double array referenced by the key.
      */
     public static double[] get(String key, double[] defaultValue) {
-        // If the subscriber already exists under the same type, return the value.
-        if (subs.get(key) instanceof DoubleArraySubscriber sub) {
-            lastReads.put(key, sub.getLastChange());
+        DoubleArrayTopic topic = table.getDoubleArrayTopic(key);
 
-            return sub.get();
-        }
-
-        // Reporting if the logged data type is different or the publisher doesn't exist.
-        if (pubs.containsKey(key)) {
+        // Making sure the topic points to a double array.
+        // This will be false if the key has already been used under a different name.
+        if (topic.getType() != NetworkTableType.kDoubleArray) {
             pubsubTypeMismatch(key, "DoubleArray", false);
-        } else {
-            noSub(key);
+            return defaultValue;
         }
 
-        return defaultValue;
+        return topic.subscribe(defaultValue).get();
     }
 
     /**
@@ -843,21 +623,16 @@ public class TurboLogger {
      * @return The double referenced by the key.
      */
     public static double get(String key, double defaultValue) {
-        // If the subscriber already exists under the same type, return the value.
-        if (subs.get(key) instanceof DoubleSubscriber sub) {
-            lastReads.put(key, sub.getLastChange());
+        DoubleTopic topic = table.getDoubleTopic(key);
 
-            return sub.get();
+        // Making sure the topic points to a double.
+        // This will be false if the key has already been used under a different name.
+        if (topic.getType() != NetworkTableType.kDouble) {
+            pubsubTypeMismatch(key, "Double", false);
+            return defaultValue;
         }
 
-        // Reporting if the logged data type is different or the publisher doesn't exist.
-        if (pubs.containsKey(key)) {
-            pubsubTypeMismatch(key, "BooleanArray", false);
-        } else {
-            noSub(key);
-        }
-
-        return defaultValue;
+        return topic.subscribe(defaultValue).get();
     }
 
     /**
@@ -869,21 +644,16 @@ public class TurboLogger {
      * @return The float array referenced by the key.
      */
     public static float[] get(String key, float[] defaultValue) {
-        // If the subscriber already exists under the same type, return the value.
-        if (subs.get(key) instanceof FloatArraySubscriber sub) {
-            lastReads.put(key, sub.getLastChange());
+        FloatArrayTopic topic = table.getFloatArrayTopic(key);
 
-            return sub.get();
-        }
-
-        // Reporting if the logged data type is different or the publisher doesn't exist.
-        if (pubs.containsKey(key)) {
+        // Making sure the topic points to a float array.
+        // This will be false if the key has already been used under a different name.
+        if (topic.getType() != NetworkTableType.kFloatArray) {
             pubsubTypeMismatch(key, "FloatArray", false);
-        } else {
-            noSub(key);
+            return defaultValue;
         }
 
-        return defaultValue;
+        return topic.subscribe(defaultValue).get();
     }
 
     /**
@@ -895,21 +665,16 @@ public class TurboLogger {
      * @return The float referenced by the key.
      */
     public static float get(String key, float defaultValue) {
-        // If the subscriber already exists under the same type, return the value.
-        if (subs.get(key) instanceof FloatSubscriber sub) {
-            lastReads.put(key, sub.getLastChange());
+        FloatTopic topic = table.getFloatTopic(key);
 
-            return sub.get();
-        }
-
-        // Reporting if the logged data type is different or the publisher doesn't exist.
-        if (pubs.containsKey(key)) {
+        // Making sure the topic points to a float.
+        // This will be false if the key has already been used under a different name.
+        if (topic.getType() != NetworkTableType.kFloat) {
             pubsubTypeMismatch(key, "Float", false);
-        } else {
-            noSub(key);
+            return defaultValue;
         }
 
-        return defaultValue;
+        return topic.subscribe(defaultValue).get();
     }
 
     /**
@@ -921,32 +686,36 @@ public class TurboLogger {
      * @return The integer array referenced by the key.
      */
     public static int[] get(String key, int[] defaultValue) {
-        // If the subscriber already exists under the same type, return the value.
-        if (subs.get(key) instanceof IntegerArraySubscriber sub) {
-            lastReads.put(key, sub.getLastChange());
+        IntegerArrayTopic topic = table.getIntegerArrayTopic(key);
 
-            // Converting the long array to an int array.
-            // It clamps the int values rather than cause them to overflow.
-            long[] longArr = sub.get();
-            int[] intArr = new int[longArr.length];
-
-            for (int i = 0; i < longArr.length; i++) {
-                if (longArr[i] > Integer.MAX_VALUE) intArr[i] = Integer.MAX_VALUE;
-                if (longArr[i] < Integer.MIN_VALUE) intArr[i] = Integer.MIN_VALUE;
-                else intArr[i] = (int) longArr[i];
-            }
-
-            return intArr;
-        }
-
-        // Reporting if the logged data type is different or the publisher doesn't exist.
-        if (pubs.containsKey(key)) {
+        // Making sure the topic points to an int array.
+        // This will be false if the key has already been used under a different name.
+        if (topic.getType() != NetworkTableType.kIntegerArray) {
             pubsubTypeMismatch(key, "IntegerArray", false);
-        } else {
-            noSub(key);
+            return defaultValue;
         }
 
-        return defaultValue;
+        // Converting the int[] to a long[]
+        long[] newDefault = new long[defaultValue.length];
+        for (int i = 0; i < defaultValue.length; i++) {
+            newDefault[i] = defaultValue[i];
+        }
+
+        long[] subscriberLongs = topic.subscribe(newDefault).get();
+        
+        // Converting the subscriber output to an int array and limiting the min and max values to the integer min and max
+        int[] subscriberInts = new int[subscriberLongs.length];
+        for (int i = 0; i < subscriberLongs.length; i++) {
+            long subscriberLong = subscriberLongs[i];
+
+            // Enforcing limits
+            if (subscriberLong > Integer.MAX_VALUE) subscriberLong = Integer.MAX_VALUE;
+            if (subscriberLong < Integer.MIN_VALUE) subscriberLong = Integer.MIN_VALUE;
+
+            subscriberInts[i] = (int) subscriberLong;
+        }
+
+        return subscriberInts;
     }
 
     /**
@@ -958,27 +727,22 @@ public class TurboLogger {
      * @return The int referenced by the key.
      */
     public static int get(String key, int defaultValue) {
-        // If the subscriber already exists under the same type, return the value.
-        if (subs.get(key) instanceof IntegerSubscriber sub) {
-            lastReads.put(key, sub.getLastChange());
+        IntegerTopic topic = table.getIntegerTopic(key);
 
-            // Converting the long to an int.
-            // It clamps the int values rather than cause them to overflow.
-            long longVal = sub.get();
-
-            if (longVal > Integer.MAX_VALUE) return Integer.MAX_VALUE;
-            if (longVal < Integer.MIN_VALUE) return Integer.MIN_VALUE;
-            else return (int) longVal;
-        }
-
-        // Reporting if the logged data type is different or the publisher doesn't exist.
-        if (pubs.containsKey(key)) {
+        // Making sure the topic points to an int.
+        // This will be false if the key has already been used under a different name.
+        if (topic.getType() != NetworkTableType.kInteger) {
             pubsubTypeMismatch(key, "Integer", false);
-        } else {
-            noSub(key);
+            return defaultValue;
         }
 
-        return defaultValue;
+        long subscriberLong = topic.subscribe(defaultValue).get();
+        
+        // Converting the subscriber output to an int and limiting the min and max values to the integer min and max.
+        if (subscriberLong > Integer.MAX_VALUE) subscriberLong = Integer.MAX_VALUE;
+        if (subscriberLong < Integer.MIN_VALUE) subscriberLong = Integer.MIN_VALUE;
+
+        return (int) subscriberLong;
     }
 
     /**
@@ -990,21 +754,16 @@ public class TurboLogger {
      * @return The string array referenced by the key.
      */
     public static String[] get(String key, String[] defaultValue) {
-        // If the subscriber already exists under the same type, return the value.
-        if (subs.get(key) instanceof StringArraySubscriber sub) {
-            lastReads.put(key, sub.getLastChange());
+        StringArrayTopic topic = table.getStringArrayTopic(key);
 
-            return sub.get();
-        }
-
-        // Reporting if the logged data type is different or the publisher doesn't exist.
-        if (pubs.containsKey(key)) {
+        // Making sure the topic points to a string array.
+        // This will be false if the key has already been used under a different name.
+        if (topic.getType() != NetworkTableType.kStringArray) {
             pubsubTypeMismatch(key, "StringArray", false);
-        } else {
-            noSub(key);
+            return defaultValue;
         }
 
-        return defaultValue;
+        return topic.subscribe(defaultValue).get();
     }
 
     /**
@@ -1016,21 +775,16 @@ public class TurboLogger {
      * @return The string referenced by the key.
      */
     public static String get(String key, String defaultValue) {
-        // If the subscriber already exists under the same type, return the value.
-        if (subs.get(key) instanceof StringSubscriber sub) {
-            lastReads.put(key, sub.getLastChange());
+        StringTopic topic = table.getStringTopic(key);
 
-            return sub.get();
-        }
-
-        // Reporting if the logged data type is different or the publisher doesn't exist.
-        if (pubs.containsKey(key)) {
+        // Making sure the topic points to a string.
+        // This will be false if the key has already been used under a different name.
+        if (topic.getType() != NetworkTableType.kString) {
             pubsubTypeMismatch(key, "String", false);
-        } else {
-            noSub(key);
+            return defaultValue;
         }
 
-        return defaultValue;
+        return topic.subscribe(defaultValue).get();
     }
 
     /**
@@ -1044,27 +798,25 @@ public class TurboLogger {
      */
     @SuppressWarnings("unchecked")
     public static <T extends StructSerializable> T[] get(String key, T[] defaultValue) {
-        // If the subscriber already exists under the same type, return the value.
-        if (subs.get(key) instanceof StructArraySubscriber sub) {
-            if (sub.get().getClass().getName().equals(defaultValue.getClass().getName())) {
-                lastReads.put(key, sub.getLastChange());
-                return (T[]) sub.get();
-            }
-
-            // Reporting if the class of the StructArraySubscriber doesn't match the class passed in
-            // as the defaultValue.
-            structTypeMismatch(key, defaultValue.getClass().getComponentType().getName(), sub.get().getClass().getComponentType().getName());
+        // Finding the struct for this StructSerializable object.
+        Struct<T> struct = null;
+        try {
+            struct = (Struct<T>) defaultValue.getClass().getComponentType().getDeclaredField("struct").get(defaultValue);
+        } catch (IllegalAccessException | NoSuchFieldException err) {
+            DriverStation.reportError("No public instance of struct for the StructSerializable object " + defaultValue.getClass().getName(), err.getStackTrace());
             return defaultValue;
         }
 
-        // Reporting if the logged data type is different or the publisher doesn't exist.
-        if (pubs.containsKey(key)) {
+        StructArrayTopic<T> topic = table.getStructArrayTopic(key, struct);
+
+        // Making sure the topic points to the right type of StructSerializable object.
+        // This will be false if the key has already been used under a different name.
+        if (!topic.getTypeString().equals(struct.getTypeString())) {
             pubsubTypeMismatch(key, "StructArray", false);
-        } else {
-            noSub(key);
+            return defaultValue;
         }
 
-        return defaultValue;
+        return topic.subscribe(defaultValue).get();
     }
 
     /**
@@ -1078,27 +830,26 @@ public class TurboLogger {
      */
     @SuppressWarnings("unchecked")
     public static <T extends StructSerializable> T get(String key, T defaultValue) {
-        // If the subscriber already exists under the same type, return the value.
-        if (subs.get(key) instanceof StructSubscriber sub) {
-            if (sub.get().getClass().getName().equals(defaultValue.getClass().getName())) {
-                lastReads.put(key, sub.getLastChange());
-                return (T) sub.get();
-            }
+        // Finding the struct for this StructSerializable object.
+        Struct<T> struct = null;
 
-            // Reporting if the class of the StructSubscriber doesn't match the class passed in
-            // as the defaultValue.
-            structTypeMismatch(key, defaultValue.getClass().getName(), sub.get().getClass().getName());
+        try {
+            struct = (Struct<T>) defaultValue.getClass().getDeclaredField("struct").get(defaultValue);
+        } catch (IllegalAccessException | NoSuchFieldException err) {
+            DriverStation.reportError("No public instance of struct for the StructSerializable object " + defaultValue.getClass().getName(), err.getStackTrace());
             return defaultValue;
         }
 
-        // Reporting if the logged data type is different or the publisher doesn't exist.
-        if (pubs.containsKey(key)) {
+        StructTopic<T> topic = table.getStructTopic(key, struct);
+
+        // Making sure the topic points to the right type of StructSerializable object.
+        // This will be false if the key has already been used under a different name.
+        if (!topic.getTypeString().equals(struct.getTypeString())) {
             pubsubTypeMismatch(key, "Struct", false);
-        } else {
-            noSub(key);
+            return defaultValue;
         }
 
-        return defaultValue;
+        return topic.subscribe(defaultValue).get();
     }
 
     /**
@@ -1120,6 +871,7 @@ public class TurboLogger {
 
         for (String alias : aliases) {
             // Skipping if the alias is the same as the path.
+            table.getTopics().stream().map(Topic::getName);
             if (alias.equals(ntPath)) {
                 DriverStation.reportWarning("Alias cannot have the same name as the NT path.  Skipping creation", false);
                 continue;
@@ -1143,14 +895,7 @@ public class TurboLogger {
 
             ntPathToAliases.get(ntPath).add(alias);
 
-            // Now that the aliases have been added to the records, let's put them into the
-            // publisher/subscriber maps.
-            // This only adds the publishers and subscribers if both exist for the ntPath.
-            if (pubs.containsKey(ntPath) && subs.containsKey(ntPath)) {
-                pubs.put(alias, pubs.get(ntPath));
-                subs.put(alias, subs.get(ntPath));
-                lastReads.put(alias, lastReads.get(ntPath));
-            }
+            lastReads.put(alias, lastReads.get(ntPath));
         }
     }
 
@@ -1174,8 +919,9 @@ public class TurboLogger {
      * @param key The key to remove.
      */
     public static void remove(String key) {
-        pubs.remove(key).close();
-        subs.remove(key).close();
+        // Removing the topic
+        Topic topic = table.getTopic(key);
+        table.removeListener(topic.getHandle());
 
         lastReads.remove(key);
 
