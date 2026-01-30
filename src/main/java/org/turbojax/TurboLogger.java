@@ -829,17 +829,16 @@ public class TurboLogger {
     }
 
     public static void addAlias(String ntPath, String alias) {
-        // Skipping if the alias is the same as the path.
-        table.getTopics().stream().map(Topic::getName);
-        if (alias.equals(ntPath)) {
-            DriverStation.reportWarning("Alias cannot have the same name as the NT path.  Skipping creation", false);
+        // Checking that the alias doesn't overlap with any existing keys.
+        List<String> topics = table.getTopics().stream().map(Topic::getName).toList();
+        if (topics.contains(alias)) {
+            DriverStation.reportWarning("Alias \"" + alias + "\" cannot be created because it overlaps with an existing NetworkTables key.", false);
             return;
         }
 
-        // If the alias has already been assigned, it reports an error and doesn't add an entry
-        // for this ntPath.
+        // Checking that the alias doesn't overlap with any existing aliases
         if (aliasToNTPath.containsKey(alias)) {
-            DriverStation.reportWarning("Alias \"" + alias + "\" has already been assigned to key \"" + aliasToNTPath.get(alias) + "\".  Skipping creation", false);
+            DriverStation.reportWarning("Alias \"" + alias + "\" cannot be created because it is already an alias for key \"" + aliasToNTPath.get(alias) + "\".", false);
             return;
         }
 
@@ -847,14 +846,7 @@ public class TurboLogger {
         aliasToNTPath.put(alias, ntPath);
 
         // Adding the alias to the ntPathToAliases table.
-        // If the list doesn't exist yet, it creates one.
-        if (!ntPathToAliases.containsKey(ntPath)) {
-            ntPathToAliases.put(ntPath, new ArrayList<String>());
-        }
-
-        ntPathToAliases.get(ntPath).add(alias);
-
-        lastReads.put(alias, lastReads.get(ntPath));
+        ntPathToAliases.getOrDefault(ntPath, new ArrayList<>()).add(alias);
     }
 
     /**
