@@ -907,7 +907,21 @@ public class TurboLogger {
      * @return Whether or not the logged value has changed.
      */
     public static boolean hasChanged(String key) {
-        return lastReads.containsKey(key) && (lastReads.get(key) < subs.get(key).getLastChange());
+        String ntPath = key;
+
+        // Checking if the key is an alias
+        if (aliasToNTPath.containsKey(key)) {
+            ntPath = aliasToNTPath.get(key);
+        }
+
+        // Checking if the ntPath has been published.
+        if (lastReads.containsKey(ntPath)) {
+            // Comparing the time the value was last changed to the time it was last read.
+            Topic topic = table.getTopic(ntPath);
+            return lastReads.get(ntPath) < topic.genericSubscribe().getLastChange();
+        }
+
+        return false;
     }
 
     /**
