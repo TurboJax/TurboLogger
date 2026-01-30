@@ -63,7 +63,7 @@ public class TurboLogger {
      * @param type  The class being logged.
      * @param isPub Whether or not the issue occurred with a publisher.
      */
-    public static void pubsubTypeMismatch(String key, String type, boolean isPub) {
+    private static void pubsubTypeMismatch(String key, String type, boolean isPub) {
         String pubsub = isPub ? "Publisher" : "Subscriber";
         if (aliasToNTPath.containsKey(key)) {
             DriverStation.reportWarning(pubsub + " is not an instance of " + type + pubsub + " for alias \"" + key + "\" of key \"" + aliasToNTPath.get(key) + "\".", false);
@@ -77,7 +77,7 @@ public class TurboLogger {
      *
      * @param key The key being read.
      */
-    public static void noSub(String key) {
+    private static void noSub(String key) {
         if (aliasToNTPath.containsKey(key)) {
             DriverStation.reportWarning("Subscriber does not exist for alias \"" + key + "\" of key \"" + aliasToNTPath.get(key) + "\".", false);
         } else {
@@ -93,7 +93,7 @@ public class TurboLogger {
      * @param desiredType The class the logger is attempting to read.
      * @param realType    The class of the variable in NetworkTables.
      */
-    public static void structTypeMismatch(String key, String desiredType, String realType) {
+    private static void structTypeMismatch(String key, String desiredType, String realType) {
         String warning = "";
         if (aliasToNTPath.containsKey(key)) {
             warning = String.format("The object at alias \"%s\" of key \"%s\" is not an instance of %s. It is a %s.", key, aliasToNTPath.get(key), desiredType, realType);
