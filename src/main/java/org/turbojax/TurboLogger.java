@@ -82,43 +82,33 @@ public class TurboLogger {
     /**
      * Logs a boolean array to NetworkTables.
      *
-     * <p>
-     * It also creates any of the aliases passed into the array.
-     *
      * @param key The key to log the value under. This can be a NetworkTables path or an alias.
      * @param value The boolean array to log.
-     * @param aliases Any aliases to add to the ntPath.
      */
-    public static void log(String key, boolean[] value, String... aliases) {
+    public static void log(String key, boolean[] value) {
         String ntPath = key;
 
         // Checking if the key is an alias
         if (aliasToNTPath.containsKey(key)) {
-
+            ntPath = aliasToNTPath.get(key);
         }
 
         // Getting the BooleanArrayTopic
-        BooleanArrayTopic topic = table.getBooleanArrayTopic(key);
+        BooleanArrayTopic topic = table.getBooleanArrayTopic(ntPath);
 
         // Making sure the topic points to a boolean array.
         // This will be false if the key has already been used under a different name.
         if (topic.getType() != NetworkTableType.kBooleanArray) {
-            pubsubTypeMismatch(key, "BooleanArray", false);
+            pubsubTypeMismatch(ntPath, "BooleanArray", false);
             return;
         }
 
         // Pushing the value
         topic.publish().set(value);
 
-        // Saving any aliases for the key
-        if (aliases.length > 0)
-            addAliases(key, aliases);
-
-        // Resetting the lastRead entry for the key
-        lastReads.put(key, 0L);
-
-        // Updating the lastRead entry for all the aliases of this key.
-        for (String alias : ntPathToAliases.getOrDefault(key,
+        // Restting the lastRead entry for the ntPath and its aliases
+        lastReads.put(ntPath, 0L);
+        for (String alias : ntPathToAliases.getOrDefault(ntPath,
                 new ArrayList<>())) {
             lastReads.put(alias, 0L);
         }
@@ -127,36 +117,33 @@ public class TurboLogger {
     /**
      * Logs a boolean to NetworkTables.
      *
-     * <p>
-     * It also creates any of the aliases passed into the array.
-     *
      * @param key The key to log the value under. This can be a NetworkTables path or an alias.
      * @param value The boolean to log.
-     * @param aliases Any aliases to add to the ntPath.
      */
-    public static void log(String key, boolean value, String... aliases) {
+    public static void log(String key, boolean value) {
+        String ntPath = key;
+
+        // Checking if the key is an alias
+        if (aliasToNTPath.containsKey(key)) {
+            ntPath = aliasToNTPath.get(key);
+        }
+
         // Getting the BooleanTopic
-        BooleanTopic topic = table.getBooleanTopic(key);
+        BooleanTopic topic = table.getBooleanTopic(ntPath);
 
         // Making sure the topic points to a boolean.
         // This will be false if the key has already been used under a different name.
         if (topic.getType() != NetworkTableType.kBoolean) {
-            pubsubTypeMismatch(key, "Boolean", false);
+            pubsubTypeMismatch(ntPath, "Boolean", false);
             return;
         }
 
         // Pushing the value
         topic.publish().set(value);
 
-        // Saving any aliases for the key
-        if (aliases.length > 0)
-            addAliases(key, aliases);
-
-        // Resetting the lastRead entry for the key
-        lastReads.put(key, 0L);
-
-        // Updating the lastRead entry for all the aliases of this key.
-        for (String alias : ntPathToAliases.getOrDefault(key,
+        // Resetting the lastRead entry for the key and its aliases
+        lastReads.put(ntPath, 0L);
+        for (String alias : ntPathToAliases.getOrDefault(ntPath,
                 new ArrayList<>())) {
             lastReads.put(alias, 0L);
         }
@@ -172,29 +159,30 @@ public class TurboLogger {
      * @param value The double array to log.
      * @param aliases Any aliases to add to the ntPath.
      */
-    public static void log(String key, double[] value, String... aliases) {
+    public static void log(String key, double[] value) {
+        String ntPath = key;
+
+        // Checking if the key is an alias
+        if (aliasToNTPath.containsKey(key)) {
+            ntPath = aliasToNTPath.get(key);
+        }
+
         // Getting the DoubleArrayTopic
-        DoubleArrayTopic topic = table.getDoubleArrayTopic(key);
+        DoubleArrayTopic topic = table.getDoubleArrayTopic(ntPath);
 
         // Making sure the topic points to a double array.
         // This will be false if the key has already been used under a different name.
         if (topic.getType() != NetworkTableType.kDoubleArray) {
-            pubsubTypeMismatch(key, "DoubleArray", false);
+            pubsubTypeMismatch(ntPath, "DoubleArray", false);
             return;
         }
 
         // Pushing the value
         topic.publish().set(value);
 
-        // Saving any aliases for the key
-        if (aliases.length > 0)
-            addAliases(key, aliases);
-
-        // Resetting the lastRead entry for the key
-        lastReads.put(key, 0L);
-
-        // Updating the lastRead entry for all the aliases of this key.
-        for (String alias : ntPathToAliases.getOrDefault(key,
+        // Resetting the lastRead entry for the key and its aliases
+        lastReads.put(ntPath, 0L);
+        for (String alias : ntPathToAliases.getOrDefault(ntPath,
                 new ArrayList<>())) {
             lastReads.put(alias, 0L);
         }
@@ -210,29 +198,30 @@ public class TurboLogger {
      * @param value The double to log.
      * @param aliases Any aliases to add to the ntPath.
      */
-    public static void log(String key, double value, String... aliases) {
+    public static void log(String key, double value) {
+        String ntPath = key;
+
+        // Checking if the key is an alias
+        if (aliasToNTPath.containsKey(key)) {
+            ntPath = aliasToNTPath.get(key);
+        }
+
         // Getting the DoubleTopic
-        DoubleTopic topic = table.getDoubleTopic(key);
+        DoubleTopic topic = table.getDoubleTopic(ntPath);
 
         // Making sure the topic points to a double.
         // This will be false if the key has already been used under a different name.
         if (topic.getType() != NetworkTableType.kDouble) {
-            pubsubTypeMismatch(key, "Double", false);
+            pubsubTypeMismatch(ntPath, "Double", false);
             return;
         }
 
         // Pushing the value
         topic.publish().set(value);
 
-        // Saving any aliases for the key
-        if (aliases.length > 0)
-            addAliases(key, aliases);
-
-        // Resetting the lastRead entry for the key
-        lastReads.put(key, 0L);
-
-        // Updating the lastRead entry for all the aliases of this key.
-        for (String alias : ntPathToAliases.getOrDefault(key,
+        // Resetting the lastRead entry for the key and its aliases
+        lastReads.put(ntPath, 0L);
+        for (String alias : ntPathToAliases.getOrDefault(ntPath,
                 new ArrayList<>())) {
             lastReads.put(alias, 0L);
         }
@@ -248,29 +237,30 @@ public class TurboLogger {
      * @param value The float array to log.
      * @param aliases Any aliases to add to the ntPath.
      */
-    public static void log(String key, float[] value, String... aliases) {
+    public static void log(String key, float[] value) {
+        String ntPath = key;
+
+        // Checking if the key is an alias
+        if (aliasToNTPath.containsKey(key)) {
+            ntPath = aliasToNTPath.get(key);
+        }
+
         // Getting the FloatArrayTopic
-        FloatArrayTopic topic = table.getFloatArrayTopic(key);
+        FloatArrayTopic topic = table.getFloatArrayTopic(ntPath);
 
         // Making sure the topic points to a float array.
         // This will be false if the key has already been used under a different name.
         if (topic.getType() != NetworkTableType.kFloatArray) {
-            pubsubTypeMismatch(key, "FloatArray", false);
+            pubsubTypeMismatch(ntPath, "FloatArray", false);
             return;
         }
 
         // Pushing the value
         topic.publish().set(value);
 
-        // Saving any aliases for the key
-        if (aliases.length > 0)
-            addAliases(key, aliases);
-
-        // Resetting the lastRead entry for the key
-        lastReads.put(key, 0L);
-
-        // Updating the lastRead entry for all the aliases of this key.
-        for (String alias : ntPathToAliases.getOrDefault(key,
+        // Resetting the lastRead entry for the key and its aliases
+        lastReads.put(ntPath, 0L);
+        for (String alias : ntPathToAliases.getOrDefault(ntPath,
                 new ArrayList<>())) {
             lastReads.put(alias, 0L);
         }
@@ -286,29 +276,30 @@ public class TurboLogger {
      * @param value The float to log.
      * @param aliases Any aliases to add to the ntPath.
      */
-    public static void log(String key, float value, String... aliases) {
+    public static void log(String key, float value) {
+        String ntPath = key;
+
+        // Checking if the key is an alias
+        if (aliasToNTPath.containsKey(key)) {
+            ntPath = aliasToNTPath.get(key);
+        }
+
         // Getting the FloatTopic
-        FloatTopic topic = table.getFloatTopic(key);
+        FloatTopic topic = table.getFloatTopic(ntPath);
 
         // Making sure the topic points to a float.
         // This will be false if the key has already been used under a different name.
         if (topic.getType() != NetworkTableType.kFloat) {
-            pubsubTypeMismatch(key, "Float", false);
+            pubsubTypeMismatch(ntPath, "Float", false);
             return;
         }
 
         // Pushing the value
         topic.publish().set(value);
 
-        // Saving any aliases for the key
-        if (aliases.length > 0)
-            addAliases(key, aliases);
-
-        // Resetting the lastRead entry for the key
-        lastReads.put(key, 0L);
-
-        // Updating the lastRead entry for all the aliases of this key.
-        for (String alias : ntPathToAliases.getOrDefault(key,
+        // Resetting the lastRead entry for the key and its aliases
+        lastReads.put(ntPath, 0L);
+        for (String alias : ntPathToAliases.getOrDefault(ntPath,
                 new ArrayList<>())) {
             lastReads.put(alias, 0L);
         }
@@ -324,14 +315,21 @@ public class TurboLogger {
      * @param value The int array to log.
      * @param aliases Any aliases to add to the ntPath.
      */
-    public static void log(String key, int[] value, String... aliases) {
+    public static void log(String key, int[] value) {
+        String ntPath = key;
+
+        // Checking if the key is an alias
+        if (aliasToNTPath.containsKey(key)) {
+            ntPath = aliasToNTPath.get(key);
+        }
+
         // Getting the IntegerArrayTopic
-        IntegerArrayTopic topic = table.getIntegerArrayTopic(key);
+        IntegerArrayTopic topic = table.getIntegerArrayTopic(ntPath);
 
         // Making sure the topic points to an integer array.
         // This will be false if the key has already been used under a different name.
         if (topic.getType() != NetworkTableType.kIntegerArray) {
-            pubsubTypeMismatch(key, "IntegerArray", false);
+            pubsubTypeMismatch(ntPath, "IntegerArray", false);
             return;
         }
 
@@ -344,15 +342,9 @@ public class TurboLogger {
         // Pushing the value
         topic.publish().set(new_value);
 
-        // Saving any aliases for the key
-        if (aliases.length > 0)
-            addAliases(key, aliases);
-
-        // Resetting the lastRead entry for the key
-        lastReads.put(key, 0L);
-
-        // Updating the lastRead entry for all the aliases of this key.
-        for (String alias : ntPathToAliases.getOrDefault(key,
+        // Resetting the lastRead entry for the key and its aliases
+        lastReads.put(ntPath, 0L);
+        for (String alias : ntPathToAliases.getOrDefault(ntPath,
                 new ArrayList<>())) {
             lastReads.put(alias, 0L);
         }
@@ -368,29 +360,30 @@ public class TurboLogger {
      * @param value The int to log.
      * @param aliases Any aliases to add to the ntPath.
      */
-    public static void log(String key, int value, String... aliases) {
+    public static void log(String key, int value) {
+        String ntPath = key;
+
+        // Checking if the key is an alias
+        if (aliasToNTPath.containsKey(key)) {
+            ntPath = aliasToNTPath.get(key);
+        }
+
         // Getting the IntegerTopic
-        IntegerTopic topic = table.getIntegerTopic(key);
+        IntegerTopic topic = table.getIntegerTopic(ntPath);
 
         // Making sure the topic points to an integer.
         // This will be false if the key has already been used under a different name.
         if (topic.getType() != NetworkTableType.kInteger) {
-            pubsubTypeMismatch(key, "Integer", false);
+            pubsubTypeMismatch(ntPath, "Integer", false);
             return;
         }
 
         // Pushing the value
         topic.publish().set(value);
 
-        // Saving any aliases for the key
-        if (aliases.length > 0)
-            addAliases(key, aliases);
-
-        // Resetting the lastRead entry for the key
-        lastReads.put(key, 0L);
-
-        // Updating the lastRead entry for all the aliases of this key.
-        for (String alias : ntPathToAliases.getOrDefault(key,
+        // Resetting the lastRead entry for the key and its aliases
+        lastReads.put(ntPath, 0L);
+        for (String alias : ntPathToAliases.getOrDefault(ntPath,
                 new ArrayList<>())) {
             lastReads.put(alias, 0L);
         }
@@ -406,29 +399,30 @@ public class TurboLogger {
      * @param value The string array to log.
      * @param aliases Any aliases to add to the ntPath.
      */
-    public static void log(String key, String[] value, String... aliases) {
+    public static void log(String key, String[] value) {
+        String ntPath = key;
+
+        // Checking if the key is an alias
+        if (aliasToNTPath.containsKey(key)) {
+            ntPath = aliasToNTPath.get(key);
+        }
+
         // Getting the StringArrayTopic
-        StringArrayTopic topic = table.getStringArrayTopic(key);
+        StringArrayTopic topic = table.getStringArrayTopic(ntPath);
 
         // Making sure the topic points to a string array.
         // This will be false if the key has already been used under a different name.
         if (topic.getType() != NetworkTableType.kStringArray) {
-            pubsubTypeMismatch(key, "StringArray", false);
+            pubsubTypeMismatch(ntPath, "StringArray", false);
             return;
         }
 
         // Pushing the value
         topic.publish().set(value);
 
-        // Saving any aliases for the key
-        if (aliases.length > 0)
-            addAliases(key, aliases);
-
-        // Resetting the lastRead entry for the key
-        lastReads.put(key, 0L);
-
-        // Updating the lastRead entry for all the aliases of this key.
-        for (String alias : ntPathToAliases.getOrDefault(key,
+        // Resetting the lastRead entry for the key and its aliases
+        lastReads.put(ntPath, 0L);
+        for (String alias : ntPathToAliases.getOrDefault(ntPath,
                 new ArrayList<>())) {
             lastReads.put(alias, 0L);
         }
@@ -444,29 +438,30 @@ public class TurboLogger {
      * @param value The string to log.
      * @param aliases Any aliases to add to the ntPath.
      */
-    public static void log(String key, String value, String... aliases) {
+    public static void log(String key, String value) {
+        String ntPath = key;
+
+        // Checking if the key is an alias
+        if (aliasToNTPath.containsKey(key)) {
+            ntPath = aliasToNTPath.get(key);
+        }
+
         // Getting the StringTopic
-        StringTopic topic = table.getStringTopic(key);
+        StringTopic topic = table.getStringTopic(ntPath);
 
         // Making sure the topic points to a string.
         // This will be false if the key has already been used under a different name.
         if (topic.getType() != NetworkTableType.kString) {
-            pubsubTypeMismatch(key, "String", false);
+            pubsubTypeMismatch(ntPath, "String", false);
             return;
         }
 
         // Pushing the value
         topic.publish().set(value);
 
-        // Saving any aliases for the key
-        if (aliases.length > 0)
-            addAliases(key, aliases);
-
-        // Resetting the lastRead entry for the key
-        lastReads.put(key, 0L);
-
-        // Updating the lastRead entry for all the aliases of this key.
-        for (String alias : ntPathToAliases.getOrDefault(key,
+        // Resetting the lastRead entry for the key and its aliases
+        lastReads.put(ntPath, 0L);
+        for (String alias : ntPathToAliases.getOrDefault(ntPath,
                 new ArrayList<>())) {
             lastReads.put(alias, 0L);
         }
@@ -486,6 +481,13 @@ public class TurboLogger {
     @SuppressWarnings("unchecked")
     public static <T extends StructSerializable> void log(String key, T[] value,
             String... aliases) {
+        String ntPath = key;
+
+        // Checking if the key is an alias
+        if (aliasToNTPath.containsKey(key)) {
+            ntPath = aliasToNTPath.get(key);
+        }
+
         // Finding the struct for this StructSerializable object.
         Struct<T> struct = null;
         try {
@@ -505,22 +507,16 @@ public class TurboLogger {
         // Making sure the topic points to the right type of StructSerializable object.
         // This will be false if the key has already been used under a different name.
         if (!topic.getTypeString().equals(struct.getTypeString())) {
-            pubsubTypeMismatch(key, "StructArray", false);
+            pubsubTypeMismatch(ntPath, "StructArray", false);
             return;
         }
 
         // Pushing the value
         topic.publish().set(value);
 
-        // Saving any aliases for the key
-        if (aliases.length > 0)
-            addAliases(key, aliases);
-
-        // Resetting the lastRead entry for the key
-        lastReads.put(key, 0L);
-
-        // Updating the lastRead entry for all the aliases of this key.
-        for (String alias : ntPathToAliases.getOrDefault(key,
+        // Resetting the lastRead entry for the key and its aliases
+        lastReads.put(ntPath, 0L);
+        for (String alias : ntPathToAliases.getOrDefault(ntPath,
                 new ArrayList<>())) {
             lastReads.put(alias, 0L);
         }
@@ -540,6 +536,13 @@ public class TurboLogger {
     @SuppressWarnings("unchecked")
     public static <T extends StructSerializable> void log(String key, T value,
             String... aliases) {
+        String ntPath = key;
+
+        // Checking if the key is an alias
+        if (aliasToNTPath.containsKey(key)) {
+            ntPath = aliasToNTPath.get(key);
+        }
+
         // Finding the struct for this StructSerializable object.
         Struct<T> struct = null;
 
@@ -555,27 +558,21 @@ public class TurboLogger {
         }
 
         // Getting the StructTopic
-        StructTopic<T> topic = table.getStructTopic(key, struct);
+        StructTopic<T> topic = table.getStructTopic(ntPath, struct);
 
         // Making sure the topic points to the right type of StructSerializable object.
         // This will be false if the key has already been used under a different name.
         if (!topic.getTypeString().equals(struct.getTypeString())) {
-            pubsubTypeMismatch(key, "Struct", false);
+            pubsubTypeMismatch(ntPath, "Struct", false);
             return;
         }
 
         // Pushing the value
         topic.publish().set(value);
 
-        // Saving any aliases for the key
-        if (aliases.length > 0)
-            addAliases(key, aliases);
-
-        // Resetting the lastRead entry for the key
-        lastReads.put(key, 0L);
-
-        // Updating the lastRead entry for all the aliases of this key.
-        for (String alias : ntPathToAliases.getOrDefault(key,
+        // Resetting the lastRead entry for the key and its aliases
+        lastReads.put(ntPath, 0L);
+        for (String alias : ntPathToAliases.getOrDefault(ntPath,
                 new ArrayList<>())) {
             lastReads.put(alias, 0L);
         }
@@ -937,6 +934,13 @@ public class TurboLogger {
     @SuppressWarnings("unchecked")
     public static <T extends StructSerializable> T[] get(String key,
             T[] defaultValue) {
+        String ntPath = key;
+
+        // Checking if the key is an alias or not
+        if (aliasToNTPath.containsKey(key)) {
+            ntPath = aliasToNTPath.get(key);
+        }
+
         // Finding the struct for this StructSerializable object.
         Struct<T> struct = null;
         try {
@@ -950,14 +954,17 @@ public class TurboLogger {
             return defaultValue;
         }
 
-        StructArrayTopic<T> topic = table.getStructArrayTopic(key, struct);
+        StructArrayTopic<T> topic = table.getStructArrayTopic(ntPath, struct);
 
         // Making sure the topic points to the right type of StructSerializable object.
         // This will be false if the key has already been used under a different name.
         if (!topic.getTypeString().equals(struct.getTypeString())) {
-            pubsubTypeMismatch(key, "StructArray", false);
+            pubsubTypeMismatch(ntPath, "StructArray", false);
             return defaultValue;
         }
+
+        // Updating the lastReads entry
+        lastReads.put(key, System.currentTimeMillis());
 
         return topic.subscribe(defaultValue).get();
     }
@@ -974,6 +981,13 @@ public class TurboLogger {
     @SuppressWarnings("unchecked")
     public static <T extends StructSerializable> T get(String key,
             T defaultValue) {
+        String ntPath = key;
+
+        // Checking if the key is an alias or not
+        if (aliasToNTPath.containsKey(key)) {
+            ntPath = aliasToNTPath.get(key);
+        }
+
         // Finding the struct for this StructSerializable object.
         Struct<T> struct = null;
 
@@ -988,14 +1002,17 @@ public class TurboLogger {
             return defaultValue;
         }
 
-        StructTopic<T> topic = table.getStructTopic(key, struct);
+        StructTopic<T> topic = table.getStructTopic(ntPath, struct);
 
         // Making sure the topic points to the right type of StructSerializable object.
         // This will be false if the key has already been used under a different name.
         if (!topic.getTypeString().equals(struct.getTypeString())) {
-            pubsubTypeMismatch(key, "Struct", false);
+            pubsubTypeMismatch(ntPath, "Struct", false);
             return defaultValue;
         }
+
+        // Updating the lastReads entry
+        lastReads.put(key, System.currentTimeMillis());
 
         return topic.subscribe(defaultValue).get();
     }
