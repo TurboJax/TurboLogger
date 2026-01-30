@@ -5,6 +5,7 @@ import edu.wpi.first.util.struct.Struct;
 import edu.wpi.first.util.struct.StructSerializable;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,20 +28,16 @@ public class TurboLogger {
      * @param logPath The path to store the logfile at.
      */
     public static void enableDataLogs(String logPath) {
-        // Checking if the path contains a file.
-        // If there is a period in the path, it is considered to be a file.
-        if (logPath.contains(".")) {
-            // Splitting the path and putting it back together without the file name.
-            StringBuilder path = new StringBuilder();
-            String[] pathParts = logPath.split("[/\\\\]");
-            for (int i = 0; i < pathParts.length - 1; i++) {
-                path.append(pathParts[i]).append("/");
-            }
+        File file = new File(logPath);
 
-            // Starting the logger at the path and file location.
-            DataLogManager.start(path.toString(), pathParts[pathParts.length - 1]);
+        // Checking if the file is a directory
+        if (file.isDirectory()) {
+            DataLogManager.start(logPath);
         } else {
-            DataLogManager.start(logPath, "");
+            String parentDir = file.getParent();
+            if (parentDir == null) parentDir = "";
+
+            DataLogManager.start(parentDir, file.getName());
         }
 
         DataLogManager.logNetworkTables(true);
