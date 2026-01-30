@@ -927,9 +927,6 @@ public class TurboLogger {
 
         // Removing the alias from the maps
         String ntPath = aliasToNTPath.remove(alias);
-
-        List<String> aliases = ntPathToAliases.get(ntPath);
-        aliases.remove(alias);
-        ntPathToAliases.put(ntPath, aliases);
+        ntPathToAliases.get(ntPath).remove(alias);
     }    
 }
