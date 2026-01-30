@@ -858,6 +858,7 @@ public class TurboLogger {
         // Adding the alias to the ntPathToAliases table.
         ntPathToAliases.getOrDefault(ntPath, new ArrayList<>()).add(alias);
 
+        // Adding the alias to the lastReads table
         lastReads.put(alias, 0l);
     }
 
