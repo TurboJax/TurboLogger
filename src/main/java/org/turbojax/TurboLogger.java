@@ -828,6 +828,16 @@ public class TurboLogger {
         return topic.subscribe(defaultValue).get();
     }
 
+    /**
+     * Creates an alias for a key. Aliases are accepted as alternatives for the key in the TurboLogger.log
+     * or TurboLogger.get methods.  They can also increase readability in the code.
+     *
+     * <p>Aliases have their own entry in the lastRead table.  This means that when you get an alias, it
+     * does not mark the main key or any other aliases for that key as read.
+     *
+     * @param ntPath The path to create an alias for.
+     * @param alias The alias to add.
+     */
     public static void addAlias(String ntPath, String alias) {
         // Checking that the alias doesn't overlap with any existing keys.
         List<String> topics = table.getTopics().stream().map(Topic::getName).toList();
@@ -847,6 +857,8 @@ public class TurboLogger {
 
         // Adding the alias to the ntPathToAliases table.
         ntPathToAliases.getOrDefault(ntPath, new ArrayList<>()).add(alias);
+
+        lastReads.put(alias, 0l);
     }
 
     /**
@@ -856,7 +868,7 @@ public class TurboLogger {
      * <p>Aliases have their own entry in the lastRead table.  This means that when you get an alias, it
      * does not mark the main key or any other aliases for that key as read.
      *
-     * @param ntPath  The path to create an alias for.
+     * @param ntPath The path to create an alias for.
      * @param aliases The aliases to add.
      */
     public static void addAliases(String ntPath, String... aliases) {
@@ -921,6 +933,13 @@ public class TurboLogger {
         ntPathToAliases.remove(ntPath).forEach(alias -> aliasToNTPath.remove(alias));
     }
 
+    /**
+     * Removes an alias.
+     *
+     * <p>This does not remove the parent key or affect any of the other other aliases associated with that key.
+     *
+     * @param alias The alias to remove.
+     */
     public static void removeAlias(String alias) {
         // Making sure the parameter is an alias
         if (!aliasToNTPath.containsKey(alias)) return;
@@ -928,5 +947,6 @@ public class TurboLogger {
         // Removing the alias from the maps
         String ntPath = aliasToNTPath.remove(alias);
         ntPathToAliases.get(ntPath).remove(alias);
+        lastReads.remove(alias);
     }    
 }
