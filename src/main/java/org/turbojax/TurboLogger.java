@@ -67,25 +67,6 @@ public class TurboLogger {
         }
     }
 
-    // TODO: Should I use this method or stick with the other method above?
-    /**
-     * Reports when the internal type of logged or read {@link StructSerializable} objects do not match what type is being requested.
-     *
-     * @param key         The key being read.
-     * @param desiredType The class the logger is attempting to read.
-     * @param realType    The class of the variable in NetworkTables.
-     */
-    private static void structTypeMismatch(String key, String desiredType, String realType) {
-        String warning = "";
-        if (aliasToNTPath.containsKey(key)) {
-            warning = String.format("The object at alias \"%s\" of key \"%s\" is not an instance of %s. It is a %s.", key, aliasToNTPath.get(key), desiredType, realType);
-        } else {
-            warning = String.format("The object at key \"%s\" is not an instance of %s.  It is a %s.", key, desiredType, realType);
-        }
-
-        DriverStation.reportWarning(warning, false);
-    }
-
     // Loggers
 
     /**
