@@ -941,32 +941,6 @@ public class TurboLogger {
     }
 
     /**
-     * Adds aliases to a key. Aliases are accepted as alternatives for the key in the
-     * TurboLogger.log or TurboLogger.get methods. They can also increase readability in the code.
-     *
-     * <p>
-     * Aliases have their own entry in the lastRead table. This means that when you get an alias, it
-     * does not mark the main key or any other aliases for that key as read.
-     *
-     * @param ntPath The path to create an alias for.
-     * @param aliases The aliases to add.
-     */
-    public static void addAliases(String ntPath, String... aliases) {
-        // This check isn't necessary, but I want it to report a warning if someone
-        // tried it.
-        if (aliases.length == 0) {
-            DriverStation.reportWarning(
-                    "Please don't use addAliases with no alias parameters",
-                    false);
-            return;
-        }
-
-        for (String alias : aliases) {
-            addAlias(ntPath, alias);
-        }
-    }
-
-    /**
      * Gets whether or not the logged value has changed since the last time the key was read from.
      *
      * @param key The key to check the status of. This can be the path in NetworkTables or an alias.
