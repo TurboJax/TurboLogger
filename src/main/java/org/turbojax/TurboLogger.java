@@ -901,46 +901,6 @@ public class TurboLogger {
     }
 
     /**
-     * Creates an alias for a key. Aliases are accepted as alternatives for the key in the
-     * TurboLogger.log or TurboLogger.get methods. They can also increase readability in the code.
-     *
-     * <p>
-     * Aliases have their own entry in the lastRead table. This means that when you get an alias, it
-     * does not mark the main key or any other aliases for that key as read.
-     *
-     * @param ntPath The path to create an alias for.
-     * @param alias The alias to add.
-     */
-    public static void addAlias(String ntPath, String alias) {
-        // Checking that the alias doesn't overlap with any existing keys.
-        List<String> topics =
-                table.getTopics().stream().map(Topic::getName).toList();
-        if (topics.contains(alias)) {
-            DriverStation.reportWarning("Alias \"" + alias
-                    + "\" cannot be created because it overlaps with an existing NetworkTables key.",
-                    false);
-            return;
-        }
-
-        // Checking that the alias doesn't overlap with any existing aliases
-        if (aliasToNTPath.containsKey(alias)) {
-            DriverStation.reportWarning("Alias \"" + alias
-                    + "\" cannot be created because it is already an alias for key \""
-                    + aliasToNTPath.get(alias) + "\".", false);
-            return;
-        }
-
-        // Recording the alias in the aliasToNTKey table.
-        aliasToNTPath.put(alias, ntPath);
-
-        // Adding the alias to the ntPathToAliases table.
-        ntPathToAliases.getOrDefault(ntPath, new ArrayList<>()).add(alias);
-
-        // Adding the alias to the lastReads table
-        lastReads.put(alias, 0l);
-    }
-
-    /**
      * Gets whether or not the logged value has changed since the last time the key was read from.
      *
      * @param key The key to check the status of. This can be the path in NetworkTables or an alias.
@@ -991,6 +951,46 @@ public class TurboLogger {
         // Removing all the aliases for the ntPath
         ntPathToAliases.remove(ntPath)
                 .forEach(alias -> aliasToNTPath.remove(alias));
+    }
+
+    /**
+     * Creates an alias for a key. Aliases are accepted as alternatives for the key in the
+     * TurboLogger.log or TurboLogger.get methods. They can also increase readability in the code.
+     *
+     * <p>
+     * Aliases have their own entry in the lastRead table. This means that when you get an alias, it
+     * does not mark the main key or any other aliases for that key as read.
+     *
+     * @param ntPath The path to create an alias for.
+     * @param alias The alias to add.
+     */
+    public static void addAlias(String ntPath, String alias) {
+        // Checking that the alias doesn't overlap with any existing keys.
+        List<String> topics =
+                table.getTopics().stream().map(Topic::getName).toList();
+        if (topics.contains(alias)) {
+            DriverStation.reportWarning("Alias \"" + alias
+                    + "\" cannot be created because it overlaps with an existing NetworkTables key.",
+                    false);
+            return;
+        }
+
+        // Checking that the alias doesn't overlap with any existing aliases
+        if (aliasToNTPath.containsKey(alias)) {
+            DriverStation.reportWarning("Alias \"" + alias
+                    + "\" cannot be created because it is already an alias for key \""
+                    + aliasToNTPath.get(alias) + "\".", false);
+            return;
+        }
+
+        // Recording the alias in the aliasToNTKey table.
+        aliasToNTPath.put(alias, ntPath);
+
+        // Adding the alias to the ntPathToAliases table.
+        ntPathToAliases.getOrDefault(ntPath, new ArrayList<>()).add(alias);
+
+        // Adding the alias to the lastReads table
+        lastReads.put(alias, 0l);
     }
 
     /**
