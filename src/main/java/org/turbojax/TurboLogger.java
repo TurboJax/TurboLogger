@@ -828,6 +828,35 @@ public class TurboLogger {
         return topic.subscribe(defaultValue).get();
     }
 
+    public static void addAlias(String ntPath, String alias) {
+        // Skipping if the alias is the same as the path.
+        table.getTopics().stream().map(Topic::getName);
+        if (alias.equals(ntPath)) {
+            DriverStation.reportWarning("Alias cannot have the same name as the NT path.  Skipping creation", false);
+            return;
+        }
+
+        // If the alias has already been assigned, it reports an error and doesn't add an entry
+        // for this ntPath.
+        if (aliasToNTPath.containsKey(alias)) {
+            DriverStation.reportWarning("Alias \"" + alias + "\" has already been assigned to key \"" + aliasToNTPath.get(alias) + "\".  Skipping creation", false);
+            return;
+        }
+
+        // Recording the alias in the aliasToNTKey table.
+        aliasToNTPath.put(alias, ntPath);
+
+        // Adding the alias to the ntPathToAliases table.
+        // If the list doesn't exist yet, it creates one.
+        if (!ntPathToAliases.containsKey(ntPath)) {
+            ntPathToAliases.put(ntPath, new ArrayList<String>());
+        }
+
+        ntPathToAliases.get(ntPath).add(alias);
+
+        lastReads.put(alias, lastReads.get(ntPath));
+    }
+
     /**
      * Adds aliases to a key. Aliases are accepted as alternatives for the key in the TurboLogger.log
      * or TurboLogger.get methods.  They can also increase readability in the code.
@@ -846,32 +875,7 @@ public class TurboLogger {
         }
 
         for (String alias : aliases) {
-            // Skipping if the alias is the same as the path.
-            table.getTopics().stream().map(Topic::getName);
-            if (alias.equals(ntPath)) {
-                DriverStation.reportWarning("Alias cannot have the same name as the NT path.  Skipping creation", false);
-                continue;
-            }
-
-            // If the alias has already been assigned, it reports an error and doesn't add an entry
-            // for this ntPath.
-            if (aliasToNTPath.containsKey(alias)) {
-                DriverStation.reportWarning("Alias \"" + alias + "\" has already been assigned to key \"" + aliasToNTPath.get(alias) + "\".  Skipping creation", false);
-                continue;
-            }
-
-            // Recording the alias in the aliasToNTKey table.
-            aliasToNTPath.put(alias, ntPath);
-
-            // Adding the alias to the ntPathToAliases table.
-            // If the list doesn't exist yet, it creates one.
-            if (!ntPathToAliases.containsKey(ntPath)) {
-                ntPathToAliases.put(ntPath, new ArrayList<String>());
-            }
-
-            ntPathToAliases.get(ntPath).add(alias);
-
-            lastReads.put(alias, lastReads.get(ntPath));
+            addAlias(ntPath, alias);
         }
     }
 
