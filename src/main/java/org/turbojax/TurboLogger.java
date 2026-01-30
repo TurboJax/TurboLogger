@@ -927,32 +927,37 @@ public class TurboLogger {
     /**
      * Removes a key from the logger.
      *
-     * <p>If the key is a NT path, then it removes its aliases. If the key is an alias itself, it
-     * removes the alias.
+     * <p>If the key is an alias, it removes the original value and all other aliases
      *
-     * @param key The key to remove.
+     * @param key The key to remove.  It can be an alias or a NetworkTables path.
      */
     public static void remove(String key) {
-        // Removing the topic
-        Topic topic = table.getTopic(key);
+        String ntPath = key;
+
+        // Checking if the key is an alias
+        if (aliasToNTPath.containsKey(key)) {
+            ntPath = aliasToNTPath.get(key);
+        }
+
+        // Removing the topic from NT
+        Topic topic = table.getTopic(ntPath);
         table.removeListener(topic.getHandle());
 
-        lastReads.remove(key);
+        lastReads.remove(ntPath);
 
-        // Removing the key and its aliases from the maps.
-        if (ntPathToAliases.containsKey(key)) {
-            for (String alias : ntPathToAliases.get(key)) {
-                aliasToNTPath.remove(alias);
-            }
-
-            ntPathToAliases.remove(key);
-        }
-
-        // Removing the alias from the alias maps.
-        if (aliasToNTPath.containsKey(key)) {
-            ntPathToAliases.get(aliasToNTPath.get(key)).remove(key);
-
-            aliasToNTPath.remove(key);
-        }
+        // Removing all the aliases for the ntPath
+        ntPathToAliases.remove(ntPath).forEach(alias -> aliasToNTPath.remove(alias));
     }
+
+    public static void removeAlias(String alias) {
+        // Making sure the parameter is an alias
+        if (!aliasToNTPath.containsKey(alias)) return;
+
+        // Removing the alias from the maps
+        String ntPath = aliasToNTPath.remove(alias);
+
+        List<String> aliases = ntPathToAliases.get(ntPath);
+        aliases.remove(alias);
+        ntPathToAliases.put(ntPath, aliases);
+    }    
 }
