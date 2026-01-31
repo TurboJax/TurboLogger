@@ -6,15 +6,12 @@ import edu.wpi.first.util.struct.StructSerializable;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class TurboLogger {
     // Hashmaps for NT logging
     private static final HashMap<String, Long> lastReads = new HashMap<>();
-    private static final HashMap<String, List<String>> ntPathToAliases =
-            new HashMap<>();
     private static final HashMap<String, String> aliasToNTPath =
             new HashMap<>();
 
@@ -77,6 +74,22 @@ public class TurboLogger {
         }
     }
 
+    /**
+     * Sets the lastReads value of a NetworkTables path and all its aliases to 0.
+     * 
+     * @param ntPath The NetworkTables path to rest. CANNOT be an alias.
+     */
+    private static void resetLastReads(String ntPath) {
+        // Restting the lastRead entry for the ntPath and its aliases
+        lastReads.put(ntPath, 0L);
+
+        aliasToNTPath.forEach((alias, path) -> {
+            if (ntPath.equals(path)) {
+                lastReads.put(alias, 0L);
+            }
+        });
+    }
+
     // Loggers
 
     /**
@@ -107,11 +120,7 @@ public class TurboLogger {
         topic.publish().set(value);
 
         // Restting the lastRead entry for the ntPath and its aliases
-        lastReads.put(ntPath, 0L);
-        for (String alias : ntPathToAliases.getOrDefault(ntPath,
-                new ArrayList<>())) {
-            lastReads.put(alias, 0L);
-        }
+        resetLastReads(ntPath);
     }
 
     /**
@@ -142,11 +151,7 @@ public class TurboLogger {
         topic.publish().set(value);
 
         // Resetting the lastRead entry for the key and its aliases
-        lastReads.put(ntPath, 0L);
-        for (String alias : ntPathToAliases.getOrDefault(ntPath,
-                new ArrayList<>())) {
-            lastReads.put(alias, 0L);
-        }
+        resetLastReads(ntPath);
     }
 
     /**
@@ -177,11 +182,7 @@ public class TurboLogger {
         topic.publish().set(value);
 
         // Resetting the lastRead entry for the key and its aliases
-        lastReads.put(ntPath, 0L);
-        for (String alias : ntPathToAliases.getOrDefault(ntPath,
-                new ArrayList<>())) {
-            lastReads.put(alias, 0L);
-        }
+        resetLastReads(ntPath);
     }
 
     /**
@@ -212,11 +213,7 @@ public class TurboLogger {
         topic.publish().set(value);
 
         // Resetting the lastRead entry for the key and its aliases
-        lastReads.put(ntPath, 0L);
-        for (String alias : ntPathToAliases.getOrDefault(ntPath,
-                new ArrayList<>())) {
-            lastReads.put(alias, 0L);
-        }
+        resetLastReads(ntPath);
     }
 
     /**
@@ -247,11 +244,7 @@ public class TurboLogger {
         topic.publish().set(value);
 
         // Resetting the lastRead entry for the key and its aliases
-        lastReads.put(ntPath, 0L);
-        for (String alias : ntPathToAliases.getOrDefault(ntPath,
-                new ArrayList<>())) {
-            lastReads.put(alias, 0L);
-        }
+        resetLastReads(ntPath);
     }
 
     /**
@@ -282,11 +275,7 @@ public class TurboLogger {
         topic.publish().set(value);
 
         // Resetting the lastRead entry for the key and its aliases
-        lastReads.put(ntPath, 0L);
-        for (String alias : ntPathToAliases.getOrDefault(ntPath,
-                new ArrayList<>())) {
-            lastReads.put(alias, 0L);
-        }
+        resetLastReads(ntPath);
     }
 
     /**
@@ -323,11 +312,7 @@ public class TurboLogger {
         topic.publish().set(new_value);
 
         // Resetting the lastRead entry for the key and its aliases
-        lastReads.put(ntPath, 0L);
-        for (String alias : ntPathToAliases.getOrDefault(ntPath,
-                new ArrayList<>())) {
-            lastReads.put(alias, 0L);
-        }
+        resetLastReads(ntPath);
     }
 
     /**
@@ -358,11 +343,7 @@ public class TurboLogger {
         topic.publish().set(value);
 
         // Resetting the lastRead entry for the key and its aliases
-        lastReads.put(ntPath, 0L);
-        for (String alias : ntPathToAliases.getOrDefault(ntPath,
-                new ArrayList<>())) {
-            lastReads.put(alias, 0L);
-        }
+        resetLastReads(ntPath);
     }
 
     /**
@@ -393,11 +374,7 @@ public class TurboLogger {
         topic.publish().set(value);
 
         // Resetting the lastRead entry for the key and its aliases
-        lastReads.put(ntPath, 0L);
-        for (String alias : ntPathToAliases.getOrDefault(ntPath,
-                new ArrayList<>())) {
-            lastReads.put(alias, 0L);
-        }
+        resetLastReads(ntPath);
     }
 
     /**
@@ -428,11 +405,7 @@ public class TurboLogger {
         topic.publish().set(value);
 
         // Resetting the lastRead entry for the key and its aliases
-        lastReads.put(ntPath, 0L);
-        for (String alias : ntPathToAliases.getOrDefault(ntPath,
-                new ArrayList<>())) {
-            lastReads.put(alias, 0L);
-        }
+        resetLastReads(ntPath);
     }
 
     /**
@@ -479,11 +452,7 @@ public class TurboLogger {
         topic.publish().set(value);
 
         // Resetting the lastRead entry for the key and its aliases
-        lastReads.put(ntPath, 0L);
-        for (String alias : ntPathToAliases.getOrDefault(ntPath,
-                new ArrayList<>())) {
-            lastReads.put(alias, 0L);
-        }
+        resetLastReads(ntPath);
     }
 
     /**
@@ -530,11 +499,7 @@ public class TurboLogger {
         topic.publish().set(value);
 
         // Resetting the lastRead entry for the key and its aliases
-        lastReads.put(ntPath, 0L);
-        for (String alias : ntPathToAliases.getOrDefault(ntPath,
-                new ArrayList<>())) {
-            lastReads.put(alias, 0L);
-        }
+        resetLastReads(ntPath);
     }
 
     // Getters
@@ -1025,8 +990,9 @@ public class TurboLogger {
         lastReads.remove(ntPath);
 
         // Removing all the aliases for the ntPath
-        ntPathToAliases.remove(ntPath)
-                .forEach(alias -> aliasToNTPath.remove(alias));
+        final String path = ntPath;
+        aliasToNTPath.entrySet()
+                .removeIf(entry -> entry.getValue().equals(path));
     }
 
     /**
@@ -1062,9 +1028,6 @@ public class TurboLogger {
         // Recording the alias in the aliasToNTKey table.
         aliasToNTPath.put(alias, ntPath);
 
-        // Adding the alias to the ntPathToAliases table.
-        ntPathToAliases.getOrDefault(ntPath, new ArrayList<>()).add(alias);
-
         // Adding the alias to the lastReads table
         lastReads.put(alias, 0l);
     }
@@ -1084,8 +1047,7 @@ public class TurboLogger {
             return;
 
         // Removing the alias from the maps
-        String ntPath = aliasToNTPath.remove(alias);
-        ntPathToAliases.get(ntPath).remove(alias);
+        aliasToNTPath.remove(alias);
         lastReads.remove(alias);
     }
 }
