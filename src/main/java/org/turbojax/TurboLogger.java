@@ -126,6 +126,28 @@ public class TurboLogger {
         resetLastReads(ntPath);
     }
 
+    private static NetworkTableValue genericGet(String key, NetworkTableValue defaultValue) {
+        String ntPath = key;
+
+        // Checking if the key is an alias or not
+        if (aliasToNTPath.containsKey(key)) {
+            ntPath = aliasToNTPath.get(key);
+        }
+
+        Topic topic = table.getTopic(ntPath);
+
+        // Making sure the existing topic's type does not conflict with the one being logged.
+        if (!topic.getTypeString().equals("") && topic.getType() != defaultValue.getType()) {
+            System.out.println("Error: Cannot pull values from the subsciber the key \"" + key + "\" points to as it returns objects of type " + topic.getTypeString() + ".");
+            return defaultValue;
+        }
+
+        // Updating the lastReads entry
+        lastReads.put(key, System.currentTimeMillis());
+
+        return topic.genericSubscribe().get();
+    }
+
     /**
      * Logs a boolean array to NetworkTables.
      *
@@ -339,26 +361,7 @@ public class TurboLogger {
      * @return The boolean array referenced by the key
      */
     public static boolean[] get(String key, boolean[] defaultValue) {
-        String ntPath = key;
-
-        // Checking if the key is an alias or not
-        if (aliasToNTPath.containsKey(key)) {
-            ntPath = aliasToNTPath.get(key);
-        }
-
-        BooleanArrayTopic topic = table.getBooleanArrayTopic(ntPath);
-
-        // Making sure the topic points to a boolean array.
-        // This will be false if the key has already been used under a different name.
-        if (topic.getType() != NetworkTableType.kBooleanArray) {
-            subTypeMismatch(ntPath, "BooleanArray");
-            return defaultValue;
-        }
-
-        // Updating the lastReads entry
-        lastReads.put(key, System.currentTimeMillis());
-
-        return topic.subscribe(defaultValue).get();
+        return genericGet(key, NetworkTableValue.makeBooleanArray(defaultValue)).getBooleanArray();
     }
 
     /**
@@ -370,26 +373,7 @@ public class TurboLogger {
      * @return The boolean referenced by the key.
      */
     public static boolean get(String key, boolean defaultValue) {
-        String ntPath = key;
-
-        // Checking if the key is an alias or not
-        if (aliasToNTPath.containsKey(key)) {
-            ntPath = aliasToNTPath.get(key);
-        }
-
-        BooleanTopic topic = table.getBooleanTopic(ntPath);
-
-        // Making sure the topic points to a boolean.
-        // This will be false if the key has already been used under a different name.
-        if (topic.getType() != NetworkTableType.kBoolean) {
-            subTypeMismatch(ntPath, "Boolean");
-            return defaultValue;
-        }
-
-        // Updating the lastReads entry
-        lastReads.put(key, System.currentTimeMillis());
-
-        return topic.subscribe(defaultValue).get();
+        return genericGet(key, NetworkTableValue.makeBoolean(defaultValue)).getBoolean();
     }
 
     /**
@@ -401,26 +385,7 @@ public class TurboLogger {
      * @return The double array referenced by the key.
      */
     public static double[] get(String key, double[] defaultValue) {
-        String ntPath = key;
-
-        // Checking if the key is an alias or not
-        if (aliasToNTPath.containsKey(key)) {
-            ntPath = aliasToNTPath.get(key);
-        }
-
-        DoubleArrayTopic topic = table.getDoubleArrayTopic(ntPath);
-
-        // Making sure the topic points to a double array.
-        // This will be false if the key has already been used under a different name.
-        if (topic.getType() != NetworkTableType.kDoubleArray) {
-            subTypeMismatch(ntPath, "DoubleArray");
-            return defaultValue;
-        }
-
-        // Updating the lastReads entry
-        lastReads.put(key, System.currentTimeMillis());
-
-        return topic.subscribe(defaultValue).get();
+        return genericGet(key, NetworkTableValue.makeDoubleArray(defaultValue)).getDoubleArray();
     }
 
     /**
@@ -432,26 +397,7 @@ public class TurboLogger {
      * @return The double referenced by the key.
      */
     public static double get(String key, double defaultValue) {
-        String ntPath = key;
-
-        // Checking if the key is an alias or not
-        if (aliasToNTPath.containsKey(key)) {
-            ntPath = aliasToNTPath.get(key);
-        }
-
-        DoubleTopic topic = table.getDoubleTopic(ntPath);
-
-        // Making sure the topic points to a double.
-        // This will be false if the key has already been used under a different name.
-        if (topic.getType() != NetworkTableType.kDouble) {
-            subTypeMismatch(ntPath, "Double");
-            return defaultValue;
-        }
-
-        // Updating the lastReads entry
-        lastReads.put(key, System.currentTimeMillis());
-
-        return topic.subscribe(defaultValue).get();
+        return genericGet(key, NetworkTableValue.makeDouble(defaultValue)).getDouble();
     }
 
     /**
@@ -463,26 +409,7 @@ public class TurboLogger {
      * @return The float array referenced by the key.
      */
     public static float[] get(String key, float[] defaultValue) {
-        String ntPath = key;
-
-        // Checking if the key is an alias or not
-        if (aliasToNTPath.containsKey(key)) {
-            ntPath = aliasToNTPath.get(key);
-        }
-
-        FloatArrayTopic topic = table.getFloatArrayTopic(ntPath);
-
-        // Making sure the topic points to a float array.
-        // This will be false if the key has already been used under a different name.
-        if (topic.getType() != NetworkTableType.kFloatArray) {
-            subTypeMismatch(ntPath, "FloatArray");
-            return defaultValue;
-        }
-
-        // Updating the lastReads entry
-        lastReads.put(key, System.currentTimeMillis());
-
-        return topic.subscribe(defaultValue).get();
+        return genericGet(key, NetworkTableValue.makeFloatArray(defaultValue)).getFloatArray();
     }
 
     /**
@@ -494,26 +421,7 @@ public class TurboLogger {
      * @return The float referenced by the key.
      */
     public static float get(String key, float defaultValue) {
-        String ntPath = key;
-
-        // Checking if the key is an alias or not
-        if (aliasToNTPath.containsKey(key)) {
-            ntPath = aliasToNTPath.get(key);
-        }
-
-        FloatTopic topic = table.getFloatTopic(ntPath);
-
-        // Making sure the topic points to a float.
-        // This will be false if the key has already been used under a different name.
-        if (topic.getType() != NetworkTableType.kFloat) {
-            subTypeMismatch(ntPath, "Float");
-            return defaultValue;
-        }
-
-        // Updating the lastReads entry
-        lastReads.put(key, System.currentTimeMillis());
-
-        return topic.subscribe(defaultValue).get();
+        return genericGet(key, NetworkTableValue.makeFloat(defaultValue)).getFloat();
     }
 
     /**
@@ -525,32 +433,13 @@ public class TurboLogger {
      * @return The integer array referenced by the key.
      */
     public static int[] get(String key, int[] defaultValue) {
-        String ntPath = key;
-
-        // Checking if the key is an alias or not
-        if (aliasToNTPath.containsKey(key)) {
-            ntPath = aliasToNTPath.get(key);
-        }
-
-        IntegerArrayTopic topic = table.getIntegerArrayTopic(ntPath);
-
-        // Making sure the topic points to an int array.
-        // This will be false if the key has already been used under a different name.
-        if (topic.getType() != NetworkTableType.kIntegerArray) {
-            subTypeMismatch(ntPath, "IntegerArray");
-            return defaultValue;
-        }
-
         // Converting the int[] to a long[]
         long[] newDefault = new long[defaultValue.length];
         for (int i = 0; i < defaultValue.length; i++) {
             newDefault[i] = defaultValue[i];
         }
 
-        // Updating the lastReads entry
-        lastReads.put(key, System.currentTimeMillis());
-
-        long[] subscriberLongs = topic.subscribe(newDefault).get();
+        long[] subscriberLongs = genericGet(key, NetworkTableValue.makeIntegerArray(newDefault)).getIntegerArray();
 
         // Converting the subscriber output to an int array and limiting the min and max
         // values to the integer min and max
@@ -579,26 +468,7 @@ public class TurboLogger {
      * @return The int referenced by the key.
      */
     public static int get(String key, int defaultValue) {
-        String ntPath = key;
-
-        // Checking if the key is an alias or not
-        if (aliasToNTPath.containsKey(key)) {
-            ntPath = aliasToNTPath.get(key);
-        }
-
-        IntegerTopic topic = table.getIntegerTopic(ntPath);
-
-        // Making sure the topic points to an int.
-        // This will be false if the key has already been used under a different name.
-        if (topic.getType() != NetworkTableType.kInteger) {
-            subTypeMismatch(ntPath, "Integer");
-            return defaultValue;
-        }
-
-        // Updating the lastReads entry
-        lastReads.put(key, System.currentTimeMillis());
-
-        long subscriberLong = topic.subscribe(defaultValue).get();
+        long subscriberLong = genericGet(key, NetworkTableValue.makeInteger(defaultValue)).getInteger();
 
         // Converting the subscriber output to an int and limiting the min and max
         // values to the integer min and max.
@@ -619,26 +489,7 @@ public class TurboLogger {
      * @return The string array referenced by the key.
      */
     public static String[] get(String key, String[] defaultValue) {
-        String ntPath = key;
-
-        // Checking if the key is an alias or not
-        if (aliasToNTPath.containsKey(key)) {
-            ntPath = aliasToNTPath.get(key);
-        }
-
-        StringArrayTopic topic = table.getStringArrayTopic(ntPath);
-
-        // Making sure the topic points to a string array.
-        // This will be false if the key has already been used under a different name.
-        if (topic.getType() != NetworkTableType.kStringArray) {
-            subTypeMismatch(ntPath, "StringArray");
-            return defaultValue;
-        }
-
-        // Updating the lastReads entry
-        lastReads.put(key, System.currentTimeMillis());
-
-        return topic.subscribe(defaultValue).get();
+        return genericGet(key, NetworkTableValue.makeStringArray(defaultValue)).getStringArray();
     }
 
     /**
@@ -650,26 +501,7 @@ public class TurboLogger {
      * @return The string referenced by the key.
      */
     public static String get(String key, String defaultValue) {
-        String ntPath = key;
-
-        // Checking if the key is an alias or not
-        if (aliasToNTPath.containsKey(key)) {
-            ntPath = aliasToNTPath.get(key);
-        }
-
-        StringTopic topic = table.getStringTopic(ntPath);
-
-        // Making sure the topic points to a string.
-        // This will be false if the key has already been used under a different name.
-        if (topic.getType() != NetworkTableType.kString) {
-            subTypeMismatch(ntPath, "String");
-            return defaultValue;
-        }
-
-        // Updating the lastReads entry
-        lastReads.put(key, System.currentTimeMillis());
-
-        return topic.subscribe(defaultValue).get();
+        return genericGet(key, NetworkTableValue.makeString(defaultValue)).getString();
     }
 
     /**
