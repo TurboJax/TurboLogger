@@ -152,12 +152,8 @@ public class TurboLogger {
     /**
      * Logs a double array to NetworkTables.
      *
-     * <p>
-     * It also creates any of the aliases passed into the array.
-     *
      * @param key The key to log the value under. This can be a NetworkTables path or an alias.
      * @param value The double array to log.
-     * @param aliases Any aliases to add to the ntPath.
      */
     public static void log(String key, double[] value) {
         String ntPath = key;
@@ -191,12 +187,8 @@ public class TurboLogger {
     /**
      * Logs a double to NetworkTables.
      *
-     * <p>
-     * It also creates any of the aliases passed into the array.
-     *
      * @param key The key to log the value under. This can be a NetworkTables path or an alias.
      * @param value The double to log.
-     * @param aliases Any aliases to add to the ntPath.
      */
     public static void log(String key, double value) {
         String ntPath = key;
@@ -230,12 +222,8 @@ public class TurboLogger {
     /**
      * Logs a float array to NetworkTables.
      *
-     * <p>
-     * It also creates any of the aliases passed into the array.
-     *
      * @param key The key to log the value under. This can be a NetworkTables path or an alias.
      * @param value The float array to log.
-     * @param aliases Any aliases to add to the ntPath.
      */
     public static void log(String key, float[] value) {
         String ntPath = key;
@@ -269,12 +257,8 @@ public class TurboLogger {
     /**
      * Logs a float to NetworkTables.
      *
-     * <p>
-     * It also creates any of the aliases passed into the array.
-     *
      * @param key The key to log the value under. This can be a NetworkTables path or an alias.
      * @param value The float to log.
-     * @param aliases Any aliases to add to the ntPath.
      */
     public static void log(String key, float value) {
         String ntPath = key;
@@ -308,12 +292,8 @@ public class TurboLogger {
     /**
      * Logs an int array to NetworkTables.
      *
-     * <p>
-     * It also creates any of the aliases passed into the array.
-     *
      * @param key The key to log the value under. This can be a NetworkTables path or an alias.
      * @param value The int array to log.
-     * @param aliases Any aliases to add to the ntPath.
      */
     public static void log(String key, int[] value) {
         String ntPath = key;
@@ -353,12 +333,8 @@ public class TurboLogger {
     /**
      * Logs an int to NetworkTables.
      *
-     * <p>
-     * It also creates any of the aliases passed into the array.
-     *
      * @param key The key to log the value under. This can be a NetworkTables path or an alias.
      * @param value The int to log.
-     * @param aliases Any aliases to add to the ntPath.
      */
     public static void log(String key, int value) {
         String ntPath = key;
@@ -392,12 +368,8 @@ public class TurboLogger {
     /**
      * Logs a string array to NetworkTables.
      *
-     * <p>
-     * It also creates any of the aliases passed into the array.
-     *
      * @param key The key to log the value under. This can be a NetworkTables path or an alias.
      * @param value The string array to log.
-     * @param aliases Any aliases to add to the ntPath.
      */
     public static void log(String key, String[] value) {
         String ntPath = key;
@@ -431,12 +403,8 @@ public class TurboLogger {
     /**
      * Logs a string to NetworkTables.
      *
-     * <p>
-     * It also creates any of the aliases passed into the array.
-     *
      * @param key The key to log the value under. This can be a NetworkTables path or an alias.
      * @param value The string to log.
-     * @param aliases Any aliases to add to the ntPath.
      */
     public static void log(String key, String value) {
         String ntPath = key;
@@ -470,17 +438,13 @@ public class TurboLogger {
     /**
      * Logs a struct array to NetworkTables.
      *
-     * <p>
-     * It also creates any of the aliases passed into the array.
-     *
      * @param key The key to log the value under. This can be a NetworkTables path or an alias.
      * @param value The struct array to log.
-     * @param aliases Any aliases to add to the ntPath.
      * @param <T> An object to log that implements {@link StructSerializable}.
      */
     @SuppressWarnings("unchecked")
-    public static <T extends StructSerializable> void log(String key, T[] value,
-            String... aliases) {
+    public static <T extends StructSerializable> void log(String key,
+            T[] value) {
         String ntPath = key;
 
         // Checking if the key is an alias
@@ -525,17 +489,12 @@ public class TurboLogger {
     /**
      * Logs a struct to NetworkTables.
      *
-     * <p>
-     * It also creates any of the aliases passed into the array.
-     *
      * @param key The key to log the value under. This can be a NetworkTables path or an alias.
      * @param value The struct to log.
-     * @param aliases Any aliases to add to the ntPath.
      * @param <T> An object to log that implements {@link StructSerializable}.
      */
     @SuppressWarnings("unchecked")
-    public static <T extends StructSerializable> void log(String key, T value,
-            String... aliases) {
+    public static <T extends StructSerializable> void log(String key, T value) {
         String ntPath = key;
 
         // Checking if the key is an alias
@@ -1047,7 +1006,7 @@ public class TurboLogger {
      * Removes a key from the logger.
      *
      * <p>
-     * If the key is an alias, it removes the original value and all other aliases
+     * If the key is an alias, it removes the parent NetworkTables path and all other aliases.
      *
      * @param key The key to remove. It can be an alias or a NetworkTables path.
      */
