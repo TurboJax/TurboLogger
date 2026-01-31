@@ -56,19 +56,16 @@ public class TurboLogger {
      * being logged or read.
      *
      * @param key   The key being logged to or read.
-     * @param type  The class being logged.
+     * @param type  The type being logged.
      * @param isPub Whether or not the issue occurred with a publisher.
      */
-    private static void pubsubTypeMismatch(String key, String type,
-            boolean isPub) {
-        String pubsub = isPub ? "Publisher" : "Subscriber";
+    private static void subTypeMismatch(String key, String type) {
         if (aliasToNTPath.containsKey(key)) {
-            DriverStation.reportWarning(pubsub + " is not an instance of "
-                    + type + pubsub + " for alias \"" + key + "\" of key \""
-                    + aliasToNTPath.get(key) + "\".", false);
+            System.out.println("Error: Cannot subscribe values to the alias \"" + key + "\" of key \""
+                    + aliasToNTPath.get(key) + "\" as it does not handle objects of type " + type + ".");
         } else {
-            DriverStation.reportWarning(pubsub + " is not an instance of "
-                    + type + pubsub + " for key \"" + key + "\".", false);
+            System.out.println("Error: Cannot subscribe values to the key \"" + key
+                    + "\" as it does not handle objects of type " + type + ".");
         }
     }
 
@@ -117,7 +114,7 @@ public class TurboLogger {
         // Making sure the existing topic's type does not conflict with the one being
         // logged.
         if (!topic.getTypeString().equals("") && topic.getType() != value.getType()) {
-            // TODO: Error, type mismatch
+            System.out.println("Error: Cannot publish values to the key \"" + key + "\" as it only accepts objects of type " + topic.getTypeString() + ".");
             return;
         }
 
@@ -277,7 +274,7 @@ public class TurboLogger {
         // Making sure the topic points to the right type of StructSerializable object.
         // This will be false if the key has already been used under a different name.
         if (!topic.getTypeString().equals(struct.getTypeString())) {
-            pubsubTypeMismatch(ntPath, "StructArray", false);
+            System.out.println("Error: Cannot publish values to the key \"" + key + "\" as it only accepts objects of type " + topic.getTypeString() + ".");
             return;
         }
 
@@ -320,7 +317,7 @@ public class TurboLogger {
         // Making sure the topic points to the right type of StructSerializable object.
         // This will be false if the key has already been used under a different name.
         if (!topic.getTypeString().equals(struct.getTypeString())) {
-            pubsubTypeMismatch(ntPath, "Struct", false);
+            System.out.println("Error: Cannot publish values to the key \"" + key + "\" as it only accepts objects of type " + topic.getTypeString() + ".");
             return;
         }
 
@@ -354,7 +351,7 @@ public class TurboLogger {
         // Making sure the topic points to a boolean array.
         // This will be false if the key has already been used under a different name.
         if (topic.getType() != NetworkTableType.kBooleanArray) {
-            pubsubTypeMismatch(ntPath, "BooleanArray", false);
+            subTypeMismatch(ntPath, "BooleanArray");
             return defaultValue;
         }
 
@@ -385,7 +382,7 @@ public class TurboLogger {
         // Making sure the topic points to a boolean.
         // This will be false if the key has already been used under a different name.
         if (topic.getType() != NetworkTableType.kBoolean) {
-            pubsubTypeMismatch(ntPath, "Boolean", false);
+            subTypeMismatch(ntPath, "Boolean");
             return defaultValue;
         }
 
@@ -416,7 +413,7 @@ public class TurboLogger {
         // Making sure the topic points to a double array.
         // This will be false if the key has already been used under a different name.
         if (topic.getType() != NetworkTableType.kDoubleArray) {
-            pubsubTypeMismatch(ntPath, "DoubleArray", false);
+            subTypeMismatch(ntPath, "DoubleArray");
             return defaultValue;
         }
 
@@ -447,7 +444,7 @@ public class TurboLogger {
         // Making sure the topic points to a double.
         // This will be false if the key has already been used under a different name.
         if (topic.getType() != NetworkTableType.kDouble) {
-            pubsubTypeMismatch(ntPath, "Double", false);
+            subTypeMismatch(ntPath, "Double");
             return defaultValue;
         }
 
@@ -478,7 +475,7 @@ public class TurboLogger {
         // Making sure the topic points to a float array.
         // This will be false if the key has already been used under a different name.
         if (topic.getType() != NetworkTableType.kFloatArray) {
-            pubsubTypeMismatch(ntPath, "FloatArray", false);
+            subTypeMismatch(ntPath, "FloatArray");
             return defaultValue;
         }
 
@@ -509,7 +506,7 @@ public class TurboLogger {
         // Making sure the topic points to a float.
         // This will be false if the key has already been used under a different name.
         if (topic.getType() != NetworkTableType.kFloat) {
-            pubsubTypeMismatch(ntPath, "Float", false);
+            subTypeMismatch(ntPath, "Float");
             return defaultValue;
         }
 
@@ -540,7 +537,7 @@ public class TurboLogger {
         // Making sure the topic points to an int array.
         // This will be false if the key has already been used under a different name.
         if (topic.getType() != NetworkTableType.kIntegerArray) {
-            pubsubTypeMismatch(ntPath, "IntegerArray", false);
+            subTypeMismatch(ntPath, "IntegerArray");
             return defaultValue;
         }
 
@@ -594,7 +591,7 @@ public class TurboLogger {
         // Making sure the topic points to an int.
         // This will be false if the key has already been used under a different name.
         if (topic.getType() != NetworkTableType.kInteger) {
-            pubsubTypeMismatch(ntPath, "Integer", false);
+            subTypeMismatch(ntPath, "Integer");
             return defaultValue;
         }
 
@@ -634,7 +631,7 @@ public class TurboLogger {
         // Making sure the topic points to a string array.
         // This will be false if the key has already been used under a different name.
         if (topic.getType() != NetworkTableType.kStringArray) {
-            pubsubTypeMismatch(ntPath, "StringArray", false);
+            subTypeMismatch(ntPath, "StringArray");
             return defaultValue;
         }
 
@@ -665,7 +662,7 @@ public class TurboLogger {
         // Making sure the topic points to a string.
         // This will be false if the key has already been used under a different name.
         if (topic.getType() != NetworkTableType.kString) {
-            pubsubTypeMismatch(ntPath, "String", false);
+            subTypeMismatch(ntPath, "String");
             return defaultValue;
         }
 
@@ -714,7 +711,7 @@ public class TurboLogger {
         // Making sure the topic points to the right type of StructSerializable object.
         // This will be false if the key has already been used under a different name.
         if (!topic.getTypeString().equals(struct.getTypeString())) {
-            pubsubTypeMismatch(ntPath, "StructArray", false);
+            subTypeMismatch(ntPath, "StructArray");
             return defaultValue;
         }
 
@@ -763,7 +760,7 @@ public class TurboLogger {
         // Making sure the topic points to the right type of StructSerializable object.
         // This will be false if the key has already been used under a different name.
         if (!topic.getTypeString().equals(struct.getTypeString())) {
-            pubsubTypeMismatch(ntPath, "Struct", false);
+            subTypeMismatch(ntPath, "Struct");
             return defaultValue;
         }
 
