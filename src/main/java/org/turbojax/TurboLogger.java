@@ -113,7 +113,7 @@ public class TurboLogger {
 
         // Making sure the existing topic's type does not conflict with the one being
         // logged.
-        if (!topic.getTypeString().equals("") && topic.getType() != value.getType()) {
+        if (!topic.getTypeString().equals("") && !topic.getTypeString().equals(value.getType().getValueStr())) {
             System.out.println("Error: Cannot publish values to the key \"" + key + "\" as it only accepts objects of type " + topic.getTypeString() + ".");
             return;
         }
@@ -137,7 +137,7 @@ public class TurboLogger {
         Topic topic = table.getTopic(ntPath);
 
         // Making sure the existing topic's type does not conflict with the one being logged.
-        if (!topic.getTypeString().equals("") && topic.getType() != defaultValue.getType()) {
+        if (!topic.getTypeString().equals("") && !topic.getTypeString().equals(defaultValue.getType().getValueStr())) {
             System.out.println("Error: Cannot pull values from the subsciber the key \"" + key + "\" points to as it returns objects of type " + topic.getTypeString() + ".");
             return defaultValue;
         }
