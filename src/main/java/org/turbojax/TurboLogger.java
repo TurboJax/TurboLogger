@@ -960,14 +960,13 @@ public class TurboLogger {
 
     /**
      * Creates an alias for a key. Aliases are accepted as alternatives for the key
-     * in the
-     * TurboLogger.log or TurboLogger.get methods. They can also increase
+     * in the TurboLogger.log or TurboLogger.get methods. They can also increase
      * readability in the code.
      *
      * <p>
      * Aliases have their own entry in the lastRead table. This means that when you
-     * get an alias, it
-     * does not mark the main key or any other aliases for that key as read.
+     * get an alias, it does not mark the main key or any other aliases for that key
+     * as read.
      *
      * @param ntPath The path to create an alias for.
      * @param alias  The alias to add.
@@ -1002,8 +1001,7 @@ public class TurboLogger {
      *
      * <p>
      * This does not remove the parent key or affect any of the other other aliases
-     * associated with
-     * that key.
+     * associated with that key.
      *
      * @param alias The alias to remove.
      */
