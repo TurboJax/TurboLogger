@@ -61,11 +61,13 @@ public class TurboLogger {
      */
     private static void subTypeMismatch(String key, String type) {
         if (aliasToNTPath.containsKey(key)) {
-            System.out.println("Error: Cannot subscribe values to the alias \"" + key + "\" of key \""
-                    + aliasToNTPath.get(key) + "\" as it does not handle objects of type " + type + ".");
+            System.out.printf(
+                    "Error: Cannot subscribe values to the alias \"%s\" of key \"%s\" as it does not handle objects of type %s.\n",
+                    key, aliasToNTPath.get(key), type);
         } else {
-            System.out.println("Error: Cannot subscribe values to the key \"" + key
-                    + "\" as it does not handle objects of type " + type + ".");
+            System.out.printf(
+                    "Error: Cannot subscribe values to the key \"%s\" as it does not handle objects of type %s.\n", key,
+                    type);
         }
     }
 
@@ -114,7 +116,9 @@ public class TurboLogger {
         // Making sure the existing topic's type does not conflict with the one being
         // logged.
         if (!topic.getTypeString().equals("") && !topic.getTypeString().equals(value.getType().getValueStr())) {
-            System.out.println("Error: Cannot publish values to the key \"" + key + "\" as it only accepts objects of type " + topic.getTypeString() + ".");
+            System.out.printf(
+                    "Error: Cannot publish %s values to the key \"%s\" as it only accepts objects of type %s.\n",
+                    value.getType().getValueStr(), key, topic.getTypeString());
             return;
         }
 
@@ -132,13 +136,17 @@ public class TurboLogger {
         // Checking if the key is an alias or not
         if (aliasToNTPath.containsKey(key)) {
             ntPath = aliasToNTPath.get(key);
+            System.out.printf("Resolved alias \"%s\" to ntPath \"%s\".\n", key, ntPath);
         }
 
         Topic topic = table.getTopic(ntPath);
 
-        // Making sure the existing topic's type does not conflict with the one being logged.
+        // Making sure the existing topic's type does not conflict with the one being
+        // logged.
         if (!topic.getTypeString().equals("") && !topic.getTypeString().equals(defaultValue.getType().getValueStr())) {
-            System.out.println("Error: Cannot pull values from the subsciber the key \"" + key + "\" points to as it returns objects of type " + topic.getTypeString() + ".");
+            System.out.printf(
+                    "Error: Cannot pull values from the subsciber the key \"%s\" points to as it returns objects of type %s.\n",
+                    key, topic.getTypeString());
             return defaultValue;
         }
 
@@ -296,7 +304,8 @@ public class TurboLogger {
         // Making sure the topic points to the right type of StructSerializable object.
         // This will be false if the key has already been used under a different name.
         if (!topic.getTypeString().equals(struct.getTypeString())) {
-            System.out.println("Error: Cannot publish values to the key \"" + key + "\" as it only accepts objects of type " + topic.getTypeString() + ".");
+            System.out.printf("Error: Cannot publish values to the key \"%s\" as it only accepts objects of type %s.\n",
+                    key, topic.getTypeString());
             return;
         }
 
@@ -339,7 +348,8 @@ public class TurboLogger {
         // Making sure the topic points to the right type of StructSerializable object.
         // This will be false if the key has already been used under a different name.
         if (!topic.getTypeString().equals(struct.getTypeString())) {
-            System.out.println("Error: Cannot publish values to the key \"" + key + "\" as it only accepts objects of type " + topic.getTypeString() + ".");
+            System.out.printf("Error: Cannot publish values to the key \"%s\" as it only accepts objects of type %s.\n",
+                    key, topic.getTypeString());
             return;
         }
 
