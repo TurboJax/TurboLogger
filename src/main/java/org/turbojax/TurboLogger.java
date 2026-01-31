@@ -114,7 +114,8 @@ public class TurboLogger {
         // Getting the topic
         Topic topic = table.getTopic(ntPath);
 
-        // Making sure the existing topic 
+        // Making sure the existing topic's type does not conflict with the one being
+        // logged.
         if (!topic.getTypeString().equals("") && topic.getType() != value.getType()) {
             // TODO: Error, type mismatch
             return;
@@ -127,7 +128,7 @@ public class TurboLogger {
         // Resetting the lastRead entry for the key and its aliases
         resetLastReads(ntPath);
     }
-    
+
     /**
      * Logs a boolean array to NetworkTables.
      *
