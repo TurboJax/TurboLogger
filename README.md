@@ -41,30 +41,30 @@ TurboLogger.addAlias("String/1", "alias1");
 
 // Gets the string from the ntPath
 // If there was no published value or the type of the published value was not a string, it'd return "DefaultVal".
-// Since we pushed a value above, this will return "Value Logged"
-TurboLogger.get("String/1", "DefaultVal");
+// Since we pushed a value above, this will return "Value logged"
+TurboLogger.get("String/1", "DefaultVal"); // "Value logged"
 
 // Gets the string from the alias
 // Since we registered "alias1" as an alias to "String/1", this would return "Value logged".
-TurboLogger.get("alias1", "DefaultVal");
+TurboLogger.get("alias1", "DefaultVal"); // "Value logged"
 
 // Checks if the value was changed since we last read it.  This will return "false".
-TurboLogger.hasChanged("String/1");
+TurboLogger.hasChanged("String/1"); // false
 
 // Changing the logged value to "New Value".
 TurboLogger.log("alias1", "New Value");
 
 // Now hasChanged() will return true for both the key and alias.
-TurboLogger.hasChanged("String/1");
-TurboLogger.hasChanged("alias1");
+TurboLogger.hasChanged("String/1"); // true
+TurboLogger.hasChanged("alias1"); // true
 
 // However if we read the value using the alias...
 TurboLogger.get("alias1", "DefaultVal");
 
 // Then the alias will return false, but the path will remain true.
 // This functionality is included so that you can have multiple aliases listening to one value and allow each of them to update.  (Like 4 PID controllers using the same kP, kI, and kD values).
-TurboLogger.hasChanged("String/1");
-TurboLogger.hasChanged("alias1");
+TurboLogger.hasChanged("String/1"); // true
+TurboLogger.hasChanged("alias1"); // false
 
 // A quick way to add multiple aliases is to make an array or list and run a for each loop on it.
 // Array form:
