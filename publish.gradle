@@ -4,52 +4,13 @@ import org.apache.tools.ant.filters.ReplaceTokens
 apply plugin: 'maven-publish'
 
 ext.licenseFile = files("$rootDir/LICENSE.txt")
-
-def templateVendorFile = "TurboLogger.json"
-
-def pubVersion = '1.1.0'
-
 def outputsFolder = file("$buildDir/outputs")
-
 def versionFile = file("$outputsFolder/version.txt")
-
-task outputVersions() {
-    description = 'Prints the versions of wpilib to a file for use by the downstream packaging project'
-    group = 'Build'
-    outputs.files(versionFile)
-
-    doFirst {
-        buildDir.mkdir()
-        outputsFolder.mkdir()
-    }
-
-    doLast {
-        versionFile.write pubVersion
-    }
-}
-
-task libraryBuild() {}
-
-build.dependsOn outputVersions
-
-task copyAllOutputs(type: Copy) {
-    destinationDir = file("$buildDir/allOutputs")
-    from versionFile
-    dependsOn outputVersions
-}
-
-build.dependsOn copyAllOutputs
-copyAllOutputs.dependsOn outputVersions
-
-ext.addTaskToCopyAllOutputs = { task ->
-    copyAllOutputs.dependsOn task
-    copyAllOutputs.inputs.file task.archiveFile
-    copyAllOutputs.from task.archiveFile
-}
 
 def artifactGroupId = 'org.turbojax'
 def baseArtifactId = 'TurboLogger'
-def javaBaseName = "_GROUP_org_turbojax_turbologger_ID_TurboLogger_CLS"
+def pubVersion = '1.1.1'
+def frcYear = "2026"
 
 task sourcesJar(type: Jar, dependsOn: classes) {
     archiveClassifier = 'sources'
@@ -61,73 +22,27 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     from javadoc.destinationDir
 }
 
-task outputJar(type: Jar, dependsOn: classes) {
-    archiveBaseName = javaBaseName
-    destinationDirectory = outputsFolder
-    from sourceSets.main.output
-}
-
-task outputSourcesJar(type: Jar, dependsOn: classes) {
-    archiveBaseName = javaBaseName
-    destinationDirectory = outputsFolder
-    archiveClassifier = 'sources'
-    from sourceSets.main.allSource
-}
-
-task outputJavadocJar(type: Jar, dependsOn: javadoc) {
-    archiveBaseName = javaBaseName
-    destinationDirectory = outputsFolder
-    archiveClassifier = 'javadoc'
-    from javadoc.destinationDir
-}
-
 // Apply template variables from the vendordep file.
-// Replaces ${VARIABLE} with VARIABLE: value in expand()
 task vendordepJson() {
     description = 'Builds the vendordep json file.'
     group = 'Build'
-    outputs.file("$buildDir/repos/$templateVendorFile")
 
     copy {
-        from templateVendorFile
-        into "$buildDir/repos/"
-        expand(version: pubVersion,
-                groupId: artifactGroupId,
-                artifactId: baseArtifactId)
-    }
-}
+        from "TurboLogger_template.json"
+        into "$projectDir"
 
-task vendordepJsonZip(type: Zip) {
-    destinationDirectory = outputsFolder
-    archiveBaseName = "vendordepJson"
+        expand(version: pubVersion, frcYear: frcYear)
 
-    from("$buildDir/repos/$templateVendorFile") {
-        into '/'
+        rename('TurboLogger_template.json', 'TurboLogger.json')
     }
-    dependsOn vendordepJson
 }
 
 artifacts {
     tasks.named("assemble") {
         dependsOn(sourcesJar)
         dependsOn(javadocJar)
-        dependsOn(outputJar)
-        dependsOn(outputSourcesJar)
-        dependsOn(outputJavadocJar)
     }
 }
-
-addTaskToCopyAllOutputs(outputSourcesJar)
-addTaskToCopyAllOutputs(outputJavadocJar)
-addTaskToCopyAllOutputs(outputJar)
-addTaskToCopyAllOutputs(vendordepJsonZip)
-
-build.dependsOn outputSourcesJar
-build.dependsOn outputJavadocJar
-build.dependsOn outputJar
-build.dependsOn vendordepJsonZip
-
-libraryBuild.dependsOn build
 
 def releasesRepoUrl = "$buildDir/repos/releases"
 
@@ -146,15 +61,6 @@ publishing {
             }
         }
     }
-    publications {
-        maven(MavenPublication) {
-            groupId = 'org.turbojax'
-            artifactId = 'TurboLogger'
-            version = pubVersion
-
-            from components.java
-        }
-    }
 }
 
 task cleanReleaseRepo(type: Delete) {
@@ -162,7 +68,6 @@ task cleanReleaseRepo(type: Delete) {
 }
 
 tasks.matching {it != cleanReleaseRepo}.all {it.dependsOn cleanReleaseRepo}
-
 model {
     publishing {
         publications {
@@ -171,7 +76,7 @@ model {
                 artifact sourcesJar
                 artifact javadocJar
 
-                artifactId = "${baseArtifactId}"
+                artifactId = baseArtifactId
                 groupId = artifactGroupId
                 version = pubVersion
             }
