@@ -728,7 +728,7 @@ public class TurboLogger {
             pubsubTypeMismatch(ntPath, "FloatArray", false);
             return defaultValue;
         }
-        
+
         // Updating the lastReads entry
         lastReads.put(key, System.currentTimeMillis());
 
