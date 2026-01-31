@@ -1,7 +1,7 @@
 {
     "fileName": "TurboLogger.json",
     "name": "TurboLogger",
-    "version": "1.1.0",
+    "version": "2.0.0",
     "frcYear": "2026",
     "uuid": "94d93ed1-f24e-4b5e-b0e4-2397d200587d",
     "mavenUrls": [
@@ -12,7 +12,7 @@
         {
             "groupId": "org.turbojax",
             "artifactId": "TurboLogger",
-            "version": "1.1.0"
+            "version": "2.0.0"
         }
     ],
     "jniDependencies": [],

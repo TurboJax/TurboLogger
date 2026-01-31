@@ -9,7 +9,7 @@ def versionFile = file("$outputsFolder/version.txt")
 
 def artifactGroupId = 'org.turbojax'
 def baseArtifactId = 'TurboLogger'
-def pubVersion = '1.1.1'
+def pubVersion = '2.0.0'
 def frcYear = "2026"
 
 task sourcesJar(type: Jar, dependsOn: classes) {
