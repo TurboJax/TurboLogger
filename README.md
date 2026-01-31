@@ -3,7 +3,7 @@ Really just a simple logger I've thrown together over the past few years.  Allow
 
 ## Links:
 - Vendordep URL: [https://turbojax.org/files/TurboLogger.json](https://turbojax.org/files/TurboLogger.json)
-- Javadocs: [https://turbojax.org/static/javadocs/turbologger/index.html](https://turbojax.org/static/javadocs/turbologger/index.html)
+- Javadocs: [https://turbojax.org/javadocs/turbologger/index.html](https://turbojax.org/javadocs/turbologger/index.html)
 - Github: [https://git.turbojax.org/TurboLogger](https://git.turbojax.org/TurboLogger)
 
 ## Usage:
