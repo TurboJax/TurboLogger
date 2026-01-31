@@ -12,19 +12,17 @@ import java.util.List;
 public class TurboLogger {
     // Hashmaps for NT logging
     private static final HashMap<String, Long> lastReads = new HashMap<>();
-    private static final HashMap<String, String> aliasToNTPath =
-            new HashMap<>();
+    private static final HashMap<String, String> aliasToNTPath = new HashMap<>();
 
-    private static final NetworkTableInstance instance =
-            NetworkTableInstance.getDefault();
+    private static final NetworkTableInstance instance = NetworkTableInstance.getDefault();
     private static final NetworkTable table = instance.getTable("TurboLogger");
 
     /**
      * Enables DataLog recording of NT output.
      *
      * <p>
-     * The wpilog is created at the logPath point. If the logPath ends with a forward slash, it is
-     * seen as a directory. Otherwise, it is seen as a file.
+     * The wpilog is created at the logPath point. If the logPath ends with a
+     * forward slash, it is seen as a directory. Otherwise, it is seen as a file.
      *
      * @param logPath The path to store the logfile at.
      */
@@ -54,11 +52,11 @@ public class TurboLogger {
     // Error messages
 
     /**
-     * Reports when a publisher or subscriber have inconsistent types with what is being logged or
-     * read.
+     * Reports when a publisher or subscriber have inconsistent types with what is
+     * being logged or read.
      *
-     * @param key The key being logged to or read.
-     * @param type The class being logged.
+     * @param key   The key being logged to or read.
+     * @param type  The class being logged.
      * @param isPub Whether or not the issue occurred with a publisher.
      */
     private static void pubsubTypeMismatch(String key, String type,
@@ -90,21 +88,35 @@ public class TurboLogger {
         });
     }
 
+    /**
+     * Gets the ntPath from an arbitray key. The key should be either an alias or a
+     * ntPath.
+     * 
+     * @param key The key to get the ntPath from.
+     * 
+     * @return If the key is an alias, it returns the ntPath the key points to.
+     *         Otherwise it returns the key.
+     */
+    private static String getNTPathFromKey(String key) {
+        // Checking if the key is an alias
+        if (aliasToNTPath.containsKey(key)) {
+            return aliasToNTPath.get(key);
+        }
+
+        return key;
+    }
+
     // Loggers
 
     /**
      * Logs a boolean array to NetworkTables.
      *
-     * @param key The key to log the value under. This can be a NetworkTables path or an alias.
+     * @param key   The key to log the value under. This can be a NetworkTables path
+     *              or an alias.
      * @param value The boolean array to log.
      */
     public static void log(String key, boolean[] value) {
-        String ntPath = key;
-
-        // Checking if the key is an alias
-        if (aliasToNTPath.containsKey(key)) {
-            ntPath = aliasToNTPath.get(key);
-        }
+        String ntPath = getNTPathFromKey(key);
 
         // Getting the BooleanArrayTopic
         BooleanArrayTopic topic = table.getBooleanArrayTopic(ntPath);
@@ -126,16 +138,12 @@ public class TurboLogger {
     /**
      * Logs a boolean to NetworkTables.
      *
-     * @param key The key to log the value under. This can be a NetworkTables path or an alias.
+     * @param key   The key to log the value under. This can be a NetworkTables path
+     *              or an alias.
      * @param value The boolean to log.
      */
     public static void log(String key, boolean value) {
-        String ntPath = key;
-
-        // Checking if the key is an alias
-        if (aliasToNTPath.containsKey(key)) {
-            ntPath = aliasToNTPath.get(key);
-        }
+        String ntPath = getNTPathFromKey(key);
 
         // Getting the BooleanTopic
         BooleanTopic topic = table.getBooleanTopic(ntPath);
@@ -157,16 +165,12 @@ public class TurboLogger {
     /**
      * Logs a double array to NetworkTables.
      *
-     * @param key The key to log the value under. This can be a NetworkTables path or an alias.
+     * @param key   The key to log the value under. This can be a NetworkTables path
+     *              or an alias.
      * @param value The double array to log.
      */
     public static void log(String key, double[] value) {
-        String ntPath = key;
-
-        // Checking if the key is an alias
-        if (aliasToNTPath.containsKey(key)) {
-            ntPath = aliasToNTPath.get(key);
-        }
+        String ntPath = getNTPathFromKey(key);
 
         // Getting the DoubleArrayTopic
         DoubleArrayTopic topic = table.getDoubleArrayTopic(ntPath);
@@ -188,16 +192,12 @@ public class TurboLogger {
     /**
      * Logs a double to NetworkTables.
      *
-     * @param key The key to log the value under. This can be a NetworkTables path or an alias.
+     * @param key   The key to log the value under. This can be a NetworkTables path
+     *              or an alias.
      * @param value The double to log.
      */
     public static void log(String key, double value) {
-        String ntPath = key;
-
-        // Checking if the key is an alias
-        if (aliasToNTPath.containsKey(key)) {
-            ntPath = aliasToNTPath.get(key);
-        }
+        String ntPath = getNTPathFromKey(key);
 
         // Getting the DoubleTopic
         DoubleTopic topic = table.getDoubleTopic(ntPath);
@@ -219,16 +219,12 @@ public class TurboLogger {
     /**
      * Logs a float array to NetworkTables.
      *
-     * @param key The key to log the value under. This can be a NetworkTables path or an alias.
+     * @param key   The key to log the value under. This can be a NetworkTables path
+     *              or an alias.
      * @param value The float array to log.
      */
     public static void log(String key, float[] value) {
-        String ntPath = key;
-
-        // Checking if the key is an alias
-        if (aliasToNTPath.containsKey(key)) {
-            ntPath = aliasToNTPath.get(key);
-        }
+        String ntPath = getNTPathFromKey(key);
 
         // Getting the FloatArrayTopic
         FloatArrayTopic topic = table.getFloatArrayTopic(ntPath);
@@ -250,16 +246,12 @@ public class TurboLogger {
     /**
      * Logs a float to NetworkTables.
      *
-     * @param key The key to log the value under. This can be a NetworkTables path or an alias.
+     * @param key   The key to log the value under. This can be a NetworkTables path
+     *              or an alias.
      * @param value The float to log.
      */
     public static void log(String key, float value) {
-        String ntPath = key;
-
-        // Checking if the key is an alias
-        if (aliasToNTPath.containsKey(key)) {
-            ntPath = aliasToNTPath.get(key);
-        }
+        String ntPath = getNTPathFromKey(key);
 
         // Getting the FloatTopic
         FloatTopic topic = table.getFloatTopic(ntPath);
@@ -281,16 +273,12 @@ public class TurboLogger {
     /**
      * Logs an int array to NetworkTables.
      *
-     * @param key The key to log the value under. This can be a NetworkTables path or an alias.
+     * @param key   The key to log the value under. This can be a NetworkTables path
+     *              or an alias.
      * @param value The int array to log.
      */
     public static void log(String key, int[] value) {
-        String ntPath = key;
-
-        // Checking if the key is an alias
-        if (aliasToNTPath.containsKey(key)) {
-            ntPath = aliasToNTPath.get(key);
-        }
+        String ntPath = getNTPathFromKey(key);
 
         // Getting the IntegerArrayTopic
         IntegerArrayTopic topic = table.getIntegerArrayTopic(ntPath);
@@ -318,16 +306,12 @@ public class TurboLogger {
     /**
      * Logs an int to NetworkTables.
      *
-     * @param key The key to log the value under. This can be a NetworkTables path or an alias.
+     * @param key   The key to log the value under. This can be a NetworkTables path
+     *              or an alias.
      * @param value The int to log.
      */
     public static void log(String key, int value) {
-        String ntPath = key;
-
-        // Checking if the key is an alias
-        if (aliasToNTPath.containsKey(key)) {
-            ntPath = aliasToNTPath.get(key);
-        }
+        String ntPath = getNTPathFromKey(key);
 
         // Getting the IntegerTopic
         IntegerTopic topic = table.getIntegerTopic(ntPath);
@@ -349,16 +333,12 @@ public class TurboLogger {
     /**
      * Logs a string array to NetworkTables.
      *
-     * @param key The key to log the value under. This can be a NetworkTables path or an alias.
+     * @param key   The key to log the value under. This can be a NetworkTables path
+     *              or an alias.
      * @param value The string array to log.
      */
     public static void log(String key, String[] value) {
-        String ntPath = key;
-
-        // Checking if the key is an alias
-        if (aliasToNTPath.containsKey(key)) {
-            ntPath = aliasToNTPath.get(key);
-        }
+        String ntPath = getNTPathFromKey(key);
 
         // Getting the StringArrayTopic
         StringArrayTopic topic = table.getStringArrayTopic(ntPath);
@@ -380,16 +360,12 @@ public class TurboLogger {
     /**
      * Logs a string to NetworkTables.
      *
-     * @param key The key to log the value under. This can be a NetworkTables path or an alias.
+     * @param key   The key to log the value under. This can be a NetworkTables path
+     *              or an alias.
      * @param value The string to log.
      */
     public static void log(String key, String value) {
-        String ntPath = key;
-
-        // Checking if the key is an alias
-        if (aliasToNTPath.containsKey(key)) {
-            ntPath = aliasToNTPath.get(key);
-        }
+        String ntPath = getNTPathFromKey(key);
 
         // Getting the StringTopic
         StringTopic topic = table.getStringTopic(ntPath);
@@ -411,19 +387,15 @@ public class TurboLogger {
     /**
      * Logs a struct array to NetworkTables.
      *
-     * @param key The key to log the value under. This can be a NetworkTables path or an alias.
+     * @param key   The key to log the value under. This can be a NetworkTables path
+     *              or an alias.
      * @param value The struct array to log.
-     * @param <T> An object to log that implements {@link StructSerializable}.
+     * @param <T>   An object to log that implements {@link StructSerializable}.
      */
     @SuppressWarnings("unchecked")
     public static <T extends StructSerializable> void log(String key,
             T[] value) {
-        String ntPath = key;
-
-        // Checking if the key is an alias
-        if (aliasToNTPath.containsKey(key)) {
-            ntPath = aliasToNTPath.get(key);
-        }
+        String ntPath = getNTPathFromKey(key);
 
         // Finding the struct for this StructSerializable object.
         Struct<T> struct = null;
@@ -458,18 +430,14 @@ public class TurboLogger {
     /**
      * Logs a struct to NetworkTables.
      *
-     * @param key The key to log the value under. This can be a NetworkTables path or an alias.
+     * @param key   The key to log the value under. This can be a NetworkTables path
+     *              or an alias.
      * @param value The struct to log.
-     * @param <T> An object to log that implements {@link StructSerializable}.
+     * @param <T>   An object to log that implements {@link StructSerializable}.
      */
     @SuppressWarnings("unchecked")
     public static <T extends StructSerializable> void log(String key, T value) {
-        String ntPath = key;
-
-        // Checking if the key is an alias
-        if (aliasToNTPath.containsKey(key)) {
-            ntPath = aliasToNTPath.get(key);
-        }
+        String ntPath = getNTPathFromKey(key);
 
         // Finding the struct for this StructSerializable object.
         Struct<T> struct = null;
@@ -507,7 +475,7 @@ public class TurboLogger {
     /**
      * Gets a boolean array from NetworkTables.
      *
-     * @param key The key to find the value under.
+     * @param key          The key to find the value under.
      * @param defaultValue The value to return if the subscriber doesn't exist.
      *
      * @return The boolean array referenced by the key
@@ -538,7 +506,7 @@ public class TurboLogger {
     /**
      * Gets a boolean from NetworkTables.
      *
-     * @param key The key to find the value under.
+     * @param key          The key to find the value under.
      * @param defaultValue The value to return if the subscriber doesn't exist.
      *
      * @return The boolean referenced by the key.
@@ -569,7 +537,7 @@ public class TurboLogger {
     /**
      * Gets a double array from NetworkTables.
      *
-     * @param key The key to find the value under.
+     * @param key          The key to find the value under.
      * @param defaultValue The value to return if the subscriber doesn't exist.
      *
      * @return The double array referenced by the key.
@@ -600,7 +568,7 @@ public class TurboLogger {
     /**
      * Gets a double from NetworkTables.
      *
-     * @param key The key to find the value under.
+     * @param key          The key to find the value under.
      * @param defaultValue The value to return if the subscriber doesn't exist.
      *
      * @return The double referenced by the key.
@@ -631,7 +599,7 @@ public class TurboLogger {
     /**
      * Gets a float array from NetworkTables.
      *
-     * @param key The key to find the value under.
+     * @param key          The key to find the value under.
      * @param defaultValue The value to return if the subscriber doesn't exist.
      *
      * @return The float array referenced by the key.
@@ -662,7 +630,7 @@ public class TurboLogger {
     /**
      * Gets a float from NetworkTables.
      *
-     * @param key The key to find the value under.
+     * @param key          The key to find the value under.
      * @param defaultValue The value to return if the subscriber doesn't exist.
      *
      * @return The float referenced by the key.
@@ -693,7 +661,7 @@ public class TurboLogger {
     /**
      * Gets an int array from NetworkTables.
      *
-     * @param key The key to find the value under.
+     * @param key          The key to find the value under.
      * @param defaultValue The value to return if the subscriber doesn't exist.
      *
      * @return The integer array referenced by the key.
@@ -747,7 +715,7 @@ public class TurboLogger {
     /**
      * Gets an int from NetworkTables.
      *
-     * @param key The key to find the value under.
+     * @param key          The key to find the value under.
      * @param defaultValue The value to return if the subscriber doesn't exist.
      *
      * @return The int referenced by the key.
@@ -787,7 +755,7 @@ public class TurboLogger {
     /**
      * Gets a string array from NetworkTables.
      *
-     * @param key The key to find the value under.
+     * @param key          The key to find the value under.
      * @param defaultValue The value to return if the subscriber doesn't exist.
      *
      * @return The string array referenced by the key.
@@ -818,7 +786,7 @@ public class TurboLogger {
     /**
      * Gets a string from NetworkTables.
      *
-     * @param key The key to find the value under.
+     * @param key          The key to find the value under.
      * @param defaultValue The value to return if the subscriber doesn't exist.
      *
      * @return The string referenced by the key.
@@ -849,11 +817,13 @@ public class TurboLogger {
     /**
      * Gets an array of struct serialized objects from NetworkTables.
      *
-     * @param key The key to find the value under.
+     * @param key          The key to find the value under.
      * @param defaultValue The value to return if the subscriber doesn't exist.
-     * @param <T> An object to log that implements {@link StructSerializable}.
+     * @param <T>          An object to log that implements
+     *                     {@link StructSerializable}.
      *
-     * @return The array of {@link StructSerializable} objects referenced by the key.
+     * @return The array of {@link StructSerializable} objects referenced by the
+     *         key.
      */
     @SuppressWarnings("unchecked")
     public static <T extends StructSerializable> T[] get(String key,
@@ -896,9 +866,10 @@ public class TurboLogger {
     /**
      * Gets a struct serialized object from NetworkTables.
      *
-     * @param key The key to find the value under.
+     * @param key          The key to find the value under.
      * @param defaultValue The value to return if the subscriber doesn't exist.
-     * @param <T> An object to log that implements {@link StructSerializable}.
+     * @param <T>          An object to log that implements
+     *                     {@link StructSerializable}.
      *
      * @return The struct serialized object referenced by the key.
      */
@@ -942,19 +913,16 @@ public class TurboLogger {
     }
 
     /**
-     * Gets whether or not the logged value has changed since the last time the key was read from.
+     * Gets whether or not the logged value has changed since the last time the key
+     * was read from.
      *
-     * @param key The key to check the status of. This can be the path in NetworkTables or an alias.
+     * @param key The key to check the status of. This can be the path in
+     *            NetworkTables or an alias.
      *
      * @return Whether or not the logged value has changed.
      */
     public static boolean hasChanged(String key) {
-        String ntPath = key;
-
-        // Checking if the key is an alias
-        if (aliasToNTPath.containsKey(key)) {
-            ntPath = aliasToNTPath.get(key);
-        }
+        String ntPath = getNTPathFromKey(key);
 
         // Checking if the ntPath has been published.
         if (lastReads.containsKey(ntPath)) {
@@ -971,17 +939,13 @@ public class TurboLogger {
      * Removes a key from the logger.
      *
      * <p>
-     * If the key is an alias, it removes the parent NetworkTables path and all other aliases.
+     * If the key is an alias, it removes the parent NetworkTables path and all
+     * other aliases.
      *
      * @param key The key to remove. It can be an alias or a NetworkTables path.
      */
     public static void remove(String key) {
-        String ntPath = key;
-
-        // Checking if the key is an alias
-        if (aliasToNTPath.containsKey(key)) {
-            ntPath = aliasToNTPath.get(key);
-        }
+        String ntPath = getNTPathFromKey(key);
 
         // Removing the topic from NT
         Topic topic = table.getTopic(ntPath);
@@ -990,26 +954,27 @@ public class TurboLogger {
         lastReads.remove(ntPath);
 
         // Removing all the aliases for the ntPath
-        final String path = ntPath;
         aliasToNTPath.entrySet()
-                .removeIf(entry -> entry.getValue().equals(path));
+                .removeIf(entry -> entry.getValue().equals(ntPath));
     }
 
     /**
-     * Creates an alias for a key. Aliases are accepted as alternatives for the key in the
-     * TurboLogger.log or TurboLogger.get methods. They can also increase readability in the code.
+     * Creates an alias for a key. Aliases are accepted as alternatives for the key
+     * in the
+     * TurboLogger.log or TurboLogger.get methods. They can also increase
+     * readability in the code.
      *
      * <p>
-     * Aliases have their own entry in the lastRead table. This means that when you get an alias, it
+     * Aliases have their own entry in the lastRead table. This means that when you
+     * get an alias, it
      * does not mark the main key or any other aliases for that key as read.
      *
      * @param ntPath The path to create an alias for.
-     * @param alias The alias to add.
+     * @param alias  The alias to add.
      */
     public static void addAlias(String ntPath, String alias) {
         // Checking that the alias doesn't overlap with any existing keys.
-        List<String> topics =
-                table.getTopics().stream().map(Topic::getName).toList();
+        List<String> topics = table.getTopics().stream().map(Topic::getName).toList();
         if (topics.contains(alias)) {
             DriverStation.reportWarning("Alias \"" + alias
                     + "\" cannot be created because it overlaps with an existing NetworkTables key.",
@@ -1036,7 +1001,8 @@ public class TurboLogger {
      * Removes an alias.
      *
      * <p>
-     * This does not remove the parent key or affect any of the other other aliases associated with
+     * This does not remove the parent key or affect any of the other other aliases
+     * associated with
      * that key.
      *
      * @param alias The alias to remove.
