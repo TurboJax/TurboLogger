@@ -615,10 +615,10 @@ public class TurboLogger {
         String ntPath = getNTPathFromKey(key);
 
         // Checking if the ntPath has been published.
-        if (lastReads.containsKey(ntPath)) {
+        if (lastReads.containsKey(key)) {
             // Comparing the time the value was last changed to the time it was last read.
             Topic topic = table.getTopic(ntPath);
-            return lastReads.get(ntPath) < topic.genericSubscribe()
+            return lastReads.get(key) < topic.genericSubscribe()
                     .getLastChange();
         }
 
