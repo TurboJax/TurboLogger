@@ -1,25 +1,87 @@
-# WPILib Vendor Template
+# TurboLogger
+Really just a simple logger I've thrown together over the past few years.  Allows logging and retrieval of values over the NetworkTables protocol for FRC with some useful adjustments.
 
-This is the base WPILib vendor template for 2025.
+## Links:
+- Vendordep URL: [https://turbojax.org/files/TurboLogger.json](https://turbojax.org/files/TurboLogger.json)
+- Javadocs: [https://turbojax.org/static/javadocs/turbologger/index.html](https://turbojax.org/static/javadocs/turbologger/index.html)
+- Github: [https://git.turbojax.org/TurboLogger](https://git.turbojax.org/TurboLogger)
 
-## Layout
+## Usage:
+- Just put `import org.turbojax.TurboLogger` at the top of your file and log away!
+- All of the logging functions are static, so no need to make an instance of them.
+- At the moment, TurboLogger does not support logging wpiunits so convert them to a number before logging.
 
-The build is split into 3 libraries. A java library is built. This has access to all of wpilib, and also can JNI load the driver library.
+## Aliases
+Aliases are essentially shorter forms of keys.  Rather than referencing "/motors/motor1/outputs/voltage" every time you want to read the voltage, you can make an alias called "m1voltage" and read/write to that instead.  
+Aliases have a separate lastRead time from their parent key and any other aliases of that key.  This allows you to update a value then have multiple aliases to listen for changes in different places.  
 
-A driver library is built. This should contain all low level code you want to access from both C++, Java and any other text based language. This will not work with LabVIEW. This library has access to the WPILib HAL and wpiutil. This library can only export C symbols. It cannot export C++ symbols at all, and all C symbols must be explicitly listed in the symbols.txt file in the driver folder. JNI symbols must be listed in this file as well. This library however can be written in C++. If you attempt to change this library to have access to all of wpilib, you will break JNI access and it will no longer work.
+To make an alias, use `TurboLogger#addAlias(String ntPath, String alias)`.  
+This will create an alias for the NetworkTables path (ntPath) provided.  
 
-A native C++ library is built. This has access to all of wpilib, and access to the driver library. This should implment the standard wpilib interfaces.
+You can remove an alias with `TurboLogger#removeAlias(String alias)`.  
+This only removes the individual alias, it does not affect the parent key or any other aliases of that key.  
 
-## Customizing
-For Java, the library name will be the folder name the build is started from, so rename the folder to the name of your choosing. 
+## Functions of TurboLogger
+`TurboLogger.enableDataLogs(path)` &rarr; Starts logging to datalogs.  The parameter is the path to create the datalog file at.  
+`TurboLogger.disableDataLogs()` &rarr; Disables datalog logging.  
+`TurboLogger.log(key, value)` &rarr; Logs the value to NetworkTables under the key parameter.  The aliases vararg allows you to define aliases when you push a value without needing to run `TurboLogger.addAliases()`.  Supports logging of all primitive data types, Strings, StructSerializable objects, and arrays of each of them.  Returns nothing and marks the value as unread.  
+`TurboLogger.get(key, defaultValue)` &rarr; Returns an object/primitive that matches the type of the defaultValue.  (It's why the function can be called simply "get" over "getBoolean" and others.)  Marks the value as read.  Supports all the same classes that the log function does.  
+`TurboLogger.addAlias(key, alias)` &rarr; Registers a new alias as a reference to the key.  See above.  
+`TurboLogger.removeAlias(alias)` &rarr; Removes an alias.  See above.  
+`TurboLogger.hasChanged(key)` &rarr; Gets if the value of the key has changed.  This returns true if the user has logged a value to the key since the last time it was read, or if the variable changes in NetworkTables.  
+`TurboLogger.remove(key)` &rarr; Removes a NetworkTables path and all of its aliases from TurboLogger.  If the key provided is an alias, it finds the parent path and removes it and its aliases.  
 
-For the native impl, you need to change the library name in the exportsConfigs block of build.gradle, the components block of build.gradle, and the taskList input array name in publish.gradle.
+### Quick Examples:
+```java
+// Logs the string "Value logged" to the "String/1" position in NetworkTables
+TurboLogger.log("String/1", "Value logged");
 
-For the driver, change the library name in privateExportsConfigs, the driver name in components, and the driverTaskList input array name. In addition, you'll need to change the `lib library` in the native C++ impl component, and the JNI library name in the JNI java class.
+// Assigns "alias1" as an alias to the NetworkTables path "String/1"
+TurboLogger.addAlias("String/1", "alias1");
 
-For the maven artifact names, those are all in publish.gradle about 40 lines down.
+// Gets the string from the ntPath
+// If there was no published value or the type of the published value was not a string, it'd return "DefaultVal".
+// Since we pushed a value above, this will return "Value Logged"
+TurboLogger.get("String/1", "DefaultVal");
 
-## Building and editing
-This uses gradle, and uses the same base setup as a standard GradleRIO robot project. This means you build with `./gradlew build`, and can install the native toolchain with `./gradlew installRoboRIOToolchain`. If you open this project in VS Code with the wpilib extension installed, you will get intellisense set up for both C++ and Java.
+// Gets the string from the alias
+// Since we registered "alias1" as an alias to "String/1", this would return "Value logged".
+TurboLogger.get("alias1", "DefaultVal");
 
-By default, this template builds against the latest WPILib development build. To build against the last WPILib tagged release, build with `./gradlew build -PreleaseMode`.
+// Checks if the value was changed since we last read it.  This will return "false".
+TurboLogger.hasChanged("String/1");
+
+// Changing the logged value to "New Value".
+TurboLogger.log("alias1", "New Value");
+
+// Now hasChanged() will return true for both the key and alias.
+TurboLogger.hasChanged("String/1");
+TurboLogger.hasChanged("alias1");
+
+// However if we read the value using the alias...
+TurboLogger.get("alias1", "DefaultVal");
+
+// Then the alias will return false, but the path will remain true.
+// This functionality is included so that you can have multiple aliases listening to one value and allow each of them to update.  (Like 4 PID controllers using the same kP, kI, and kD values).
+TurboLogger.hasChanged("String/1");
+TurboLogger.hasChanged("alias1");
+
+// A quick way to add multiple aliases is to make an array or list and run a for each loop on it.
+// Array form:
+String[] newAliases = {"alias2", "alias3"};
+for (String alias : newAliases) {
+    TurboLogger.addAlias("String/1", alias);
+}
+
+// List form:
+List.of("alias4", "alias5").forEach(alias -> TurboLogger.addAlias("String/1", alias));
+
+// If you ever feel the need to remove some aliases, turn to TurboLogger.removeAlias().  It removes just the alias you provide and nothong else.
+TurboLogger.removeAlias("alias2");
+
+// For mass removal, just do the same thing as with TurboLogger#addAlias
+
+// Lastly we have the remove() function, which removes a ntPath and all of its aliases from the logger.
+// You can pass an alias into this function as well, and it'll still work.
+TurboLogger.remove("alias1");
+```
