@@ -157,6 +157,17 @@ public class TurboLogger {
     }
 
     /**
+     * Logs an enum to NetworkTables
+     * 
+     * @param key   The key to log the value under. This can be a NetworkTables path
+     *              or an alias.
+     * @param value The enum to log
+     */
+    public static void log(String key, Enum<?> value) {
+        log(key, value.toString());
+    }
+
+    /**
      * Logs a boolean array to NetworkTables.
      *
      * @param key   The key to log the value under. This can be a NetworkTables path
