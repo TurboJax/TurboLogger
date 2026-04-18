@@ -159,11 +159,12 @@ public class TurboLogger {
     /**
      * Logs an enum to NetworkTables
      * 
+     * @param <E> The enum type
      * @param key   The key to log the value under. This can be a NetworkTables path
      *              or an alias.
      * @param value The enum to log
      */
-    public static void log(String key, Enum<?> value) {
+    public static <E extends Enum<E>> void log(String key, E value) {
         log(key, value.toString());
     }
 
