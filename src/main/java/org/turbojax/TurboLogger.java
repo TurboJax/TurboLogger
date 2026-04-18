@@ -1,10 +1,12 @@
 package org.turbojax;
 
 import edu.wpi.first.networktables.*;
+import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.struct.Struct;
 import edu.wpi.first.util.struct.StructSerializable;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
@@ -166,6 +168,10 @@ public class TurboLogger {
      */
     public static <E extends Enum<E>> void log(String key, E value) {
         log(key, value.toString());
+    }
+
+    public static void log(String key, Sendable value) {
+        SmartDashboard.putData(value);
     }
 
     /**
