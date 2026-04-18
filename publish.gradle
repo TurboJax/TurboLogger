@@ -44,17 +44,21 @@ artifacts {
     }
 }
 
+// Loading local properties
+def localProperties = new Properties()
+localProperties.load(new FileInputStream(rootProject.file("local.properties")))
+
 def releasesRepoUrl = "$buildDir/repos/releases"
 
 publishing {
     repositories {
         maven {
-            name = "turbojax-releases"
+            name = "turboReleases"
             url = uri("https://maven.turbojax.org/releases")
 
             credentials {
-                username = "turbo"
-                password = "EvNq/ACJijFcrnyf4jhQU4CUCZaP8g1x08jUQfDYAftllF9166F06qrnJTkVP5Sx"
+                username = "${localProperties['publish.name']}"
+                password = "${localProperties['publish.key']}"
             }
             authentication {
                 basic(BasicAuthentication)
